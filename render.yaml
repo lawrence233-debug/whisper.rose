@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: whisper-rose
+    runtime: static
+    staticPublishPath: .
+    buildCommand: ""

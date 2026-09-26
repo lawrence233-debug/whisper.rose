@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bloom Rose Massager | Whisper Rose</title>
+    <meta
+      name="description"
+      content="Bloom — a rose-shaped personal massager with 10 intensity modes, whisper-quiet motor, and waterproof, rechargeable design. Free discreet shipping, 30-day returns."
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <a href="#" class="brand" aria-label="Whisper Rose home">
+          <span class="brand-mark">W</span>
+          <span>Whisper Rose</span>
+        </a>
+
+        <nav class="nav-links" aria-label="Main navigation">
+          <a href="#overview">Overview</a>
+          <a href="#features">Features</a>
+          <a href="#specs">Specs</a>
+          <a href="#reviews">Reviews</a>
+          <a href="#faq">FAQ</a>
+        </nav>
+
+        <div class="nav-actions">
+          <div class="account-slot" id="accountSlot"></div>
+          <button class="icon-btn" id="cartToggle" aria-label="View cart">
+            🛒
+            <span class="cart-badge" id="cartCount">0</span>
+          </button>
+          <a href="#buy" class="primary-btn">Buy now</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" id="overview">
+        <div class="container product-shell">
+          <div class="gallery">
+            <div class="gallery-main">
+              <span class="product-flag">🔥 Best seller</span>
+              <img id="mainImage" src="https://images.unsplash.com/photo-1519058497187-7167f17c6daf?auto=format&fit=crop&w=1000&q=80" alt="Bloom Rose Massager, ruby red" />
+            </div>
+            <div class="gallery-thumbs" id="galleryThumbs">
+              <button class="thumb is-active" data-image="https://images.unsplash.com/photo-1519058497187-7167f17c6daf?auto=format&fit=crop&w=1000&q=80">
+                <img src="https://images.unsplash.com/photo-1519058497187-7167f17c6daf?auto=format&fit=crop&w=300&q=80" alt="Ruby red" />
+              </button>
+              <button class="thumb" data-image="https://images.unsplash.com/photo-1600368037440-96975dc2079c?auto=format&fit=crop&w=1000&q=80">
+                <img src="https://images.unsplash.com/photo-1600368037440-96975dc2079c?auto=format&fit=crop&w=300&q=80" alt="Blush pink" />
+              </button>
+              <button class="thumb" data-image="https://images.unsplash.com/photo-1534700071278-9c56874f2e41?auto=format&fit=crop&w=1000&q=80">
+                <img src="https://images.unsplash.com/photo-1534700071278-9c56874f2e41?auto=format&fit=crop&w=300&q=80" alt="Midnight plum, detail" />
+              </button>
+              <button class="thumb" data-image="https://images.unsplash.com/photo-1680518347263-86d13120a919?auto=format&fit=crop&w=1000&q=80">
+                <img src="https://images.unsplash.com/photo-1680518347263-86d13120a919?auto=format&fit=crop&w=300&q=80" alt="Gift box packaging" />
+              </button>
+            </div>
+          </div>
+
+          <div class="buy-panel" id="buy">
+            <span class="eyebrow">Discreet, waterproof, rechargeable</span>
+            <h1>Bloom Rose Massager</h1>
+
+            <div class="rating">
+              <span class="stars">★★★★★</span>
+              <span>4.9 · 124 reviews</span>
+            </div>
+
+            <p class="lede">
+              A rose-shaped personal massager with 10 intensity modes, a whisper-quiet
+              motor, and a soft silicone finish — designed for solo or partnered use,
+              wherever you like.
+            </p>
+
+            <div class="price-row">
+              <strong id="unitPrice">₵39</strong>
+              <span>₵59</span>
+              <span class="save-pill">Save 34%</span>
+            </div>
+
+            <div class="option-group">
+              <span class="option-label">Colour</span>
+              <div class="swatches" id="colorSwatches">
+                <button class="swatch is-active" data-color="Ruby Red" style="--swatch: #c81d3f;" aria-label="Ruby Red"></button>
+                <button class="swatch" data-color="Blush Pink" style="--swatch: #f2a6bd;" aria-label="Blush Pink"></button>
+                <button class="swatch" data-color="Midnight Plum" style="--swatch: #3c1530;" aria-label="Midnight Plum"></button>
+              </div>
+              <span class="option-value" id="colorValue">Ruby Red</span>
+            </div>
+
+            <div class="option-group">
+              <span class="option-label">Quantity</span>
+              <div class="stepper">
+                <button class="qty-btn" id="qtyMinus" aria-label="Decrease quantity">−</button>
+                <span id="qtyValue">1</span>
+                <button class="qty-btn" id="qtyPlus" aria-label="Increase quantity">+</button>
+              </div>
+            </div>
+
+            <div class="buy-actions">
+              <button class="secondary-btn" id="addToCartBtn">Add to cart</button>
+              <button class="primary-btn" id="buyNowBtn">Buy now</button>
+            </div>
+
+            <div class="trust-row">
+              <span>📦 Discreet packaging</span>
+              <span>↩️ 30-day returns</span>
+              <span>🛡️ 1-year warranty</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="container">
+        <div class="promo-strip">
+          <div class="promo-item">
+            <div class="promo-icon">🚚</div>
+            <div>
+              <strong>Discreet delivery</strong>
+              <span>Plain packaging, no logos</span>
+            </div>
+          </div>
+          <div class="promo-item">
+            <div class="promo-icon">🛡️</div>
+            <div>
+              <strong>Secure payment</strong>
+              <span>Protected checkout</span>
+            </div>
+          </div>
+          <div class="promo-item">
+            <div class="promo-icon">↩️</div>
+            <div>
+              <strong>Easy returns</strong>
+              <span>30-day guarantee</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <section class="section" id="features">
+        <div class="container">
+          <div class="section-head">
+            <h2>Why you'll love it</h2>
+          </div>
+
+          <div class="features-grid">
+            <div class="feature-card">
+              <div class="feature-icon">🌹</div>
+              <h3>10 intensity modes</h3>
+              <p>From a gentle flutter to a deep pulse — cycle through modes with a single button.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">💧</div>
+              <h3>Fully waterproof</h3>
+              <p>IPX7-rated for easy cleaning and use in the bath or shower.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔇</div>
+              <h3>Whisper-quiet motor</h3>
+              <p>Runs under 50dB, so it stays your business and no one else's.</p>
+            </div>
+            <div class="feature-card">
+              <div class="feature-icon">🔋</div>
+              <h3>Rechargeable, travel-ready</h3>
+              <p>USB-C charging gives up to 90 minutes of use, with a travel lock to prevent accidental buzzing.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="specs">
+        <div class="container">
+          <div class="section-head">
+            <h2>Specifications</h2>
+          </div>
+
+          <div class="specs-card">
+            <div class="spec-row">
+              <span>Material</span>
+              <span>Body-safe medical-grade silicone</span>
+            </div>
+            <div class="spec-row">
+              <span>Intensity modes</span>
+              <span>10 patterns, 3 speeds</span>
+            </div>
+            <div class="spec-row">
+              <span>Water resistance</span>
+              <span>IPX7 (fully waterproof)</span>
+            </div>
+            <div class="spec-row">
+              <span>Charging</span>
+              <span>USB-C, magnetic charge dock, ~90 min USE / 2hr charge</span>
+            </div>
+            <div class="spec-row">
+              <span>Noise level</span>
+              <span>Under 50dB</span>
+            </div>
+            <div class="spec-row">
+              <span>Colours</span>
+              <span>Ruby Red, Blush Pink, Midnight Plum</span>
+            </div>
+            <div class="spec-row">
+              <span>In the box</span>
+              <span>Massager, USB-C charging cable, storage pouch, cleaning guide</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="reviews">
+        <div class="container">
+          <div class="section-head">
+            <h2>Customer reviews</h2>
+            <span class="reviews-summary">4.9 average · 124 reviews</span>
+          </div>
+
+          <div class="reviews">
+            <article class="review-card">
+              <div class="stars">★★★★★</div>
+              <p>“Packaging was completely discreet and the quality feels premium. Quiet enough that I forgot to worry about it.”</p>
+              <div class="customer">
+                <div class="avatar">A</div>
+                <div>
+                  <strong>Alicia M.</strong>
+                  <span>Verified buyer</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="review-card">
+              <div class="stars">★★★★★</div>
+              <p>“Great range of intensity settings and it's genuinely waterproof — easy to clean, easy to charge, no complaints.”</p>
+              <div class="customer">
+                <div class="avatar">J</div>
+                <div>
+                  <strong>Jordan T.</strong>
+                  <span>Repeat customer</span>
+                </div>
+              </div>
+            </article>
+
+            <article class="review-card">
+              <div class="stars">★★★★★</div>
+              <p>“Arrived fast in plain packaging. The build quality and finish are much nicer than I expected for the price.”</p>
+              <div class="customer">
+                <div class="avatar">S</div>
+                <div>
+                  <strong>Samantha L.</strong>
+                  <span>Happy shopper</span>
+                </div>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="faq">
+        <div class="container">
+          <div class="section-head">
+            <h2>Frequently asked questions</h2>
+          </div>
+
+          <div class="faq-list" id="faqList">
+            <div class="faq-item">
+              <button class="faq-question">
+                Is the packaging discreet?
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-answer">
+                <p>Yes. Every order ships in a plain, unmarked box with no product images or branding on the outside, and the billing descriptor is generic.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">
+                Is it waterproof and easy to clean?
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-answer">
+                <p>Yes, it's IPX7 rated. Rinse with warm water and a mild, unscented soap after each use, and let it air dry before storing it in the pouch.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">
+                What's the return policy?
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-answer">
+                <p>For hygiene reasons we can only accept returns of unopened, unused items within 30 days. Damaged or faulty units are replaced free of charge.</p>
+              </div>
+            </div>
+            <div class="faq-item">
+              <button class="faq-question">
+                How long does shipping take?
+                <span class="faq-icon">+</span>
+              </button>
+              <div class="faq-answer">
+                <p>Orders dispatch within 24 hours and typically arrive in 2–4 business days, free on every order.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="container">
+        <div class="newsletter">
+          <div>
+            <h3>Get $10 off your first order.</h3>
+            <p>Sign up for restock alerts and early access to new colourways. Discreet, no spam.</p>
+          </div>
+
+          <form class="newsletter-form" onsubmit="event.preventDefault(); alert('Thanks for subscribing! Check your inbox for your code.');">
+            <input type="email" placeholder="Your email address" aria-label="Email address" required />
+            <button type="submit">Get my code</button>
+          </form>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="container footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="brand">
+            <span class="brand-mark">W</span>
+            <span>Whisper Rose</span>
+          </a>
+          <p>Bloom Rose Massager — body-safe silicone, designed for comfort and discretion.</p>
+          <div class="socials" aria-label="Social links">
+            <a href="#" aria-label="Instagram">◎</a>
+            <a href="#" aria-label="X">X</a>
+            <a href="#" aria-label="Facebook">f</a>
+          </div>
+        </div>
+
+        <div>
+          <h4>Company</h4>
+          <div class="footer-links">
+            <a href="#">About</a>
+            <a href="#">Careers</a>
+            <a href="#">Blog</a>
+            <a href="#">Contact</a>
+          </div>
+        </div>
+
+        <div>
+          <h4>Support</h4>
+          <div class="footer-links">
+            <a href="#specs">Shipping</a>
+            <a href="#faq">Returns</a>
+            <a href="#faq">FAQ</a>
+            <a href="#">Privacy</a>
+          </div>
+        </div>
+
+        <div>
+          <h4>Contact</h4>
+          <div class="footer-links">
+            <span>hello@whisperrose.com</span>
+            <span>+1 (800) 555-0147</span>
+            <span>Mon–Sat, 9am–6pm</span>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    <div class="sticky-bar" id="stickyBar">
+      <div class="container sticky-bar-inner">
+        <div class="sticky-info">
+          <img src="https://images.unsplash.com/photo-1519058497187-7167f17c6daf?auto=format&fit=crop&w=200&q=80" alt="Bloom Rose Massager" />
+          <div>
+            <strong>Bloom Rose Massager</strong>
+            <span id="stickyPrice">₵39</span>
+          </div>
+        </div>
+        <button class="primary-btn" id="stickyAddBtn">Add to cart</button>
+      </div>
+    </div>
+
+    <a
+      class="wa-float"
+      id="waFloat"
+      href="https://wa.me/25550667565?text=Hi%20Whisper%20Rose%20supplier%2C%20I%20want%20to%20ask%20about%20my%20order."
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Chat with our supplier on WhatsApp"
+      title="Chat with our supplier on WhatsApp"
+    >
+      <span class="wa-icon">💬</span>
+      <span class="wa-label">Text supplier</span>
+    </a>
+
+    <div class="overlay" id="overlay"></div>
+
+    <aside class="cart-panel" id="cartPanel" aria-label="Shopping cart">
+      <div class="cart-header">
+        <h3>Your cart</h3>
+        <button class="close-cart" id="closeCart" aria-label="Close cart">×</button>
+      </div>
+      <div class="cart-list" id="cartList"></div>
+      <div class="cart-footer">
+        <div class="summary-row">
+          <span>Total</span>
+          <strong id="cartTotal">$0.00</strong>
+        </div>
+        <button class="checkout-btn" id="checkoutBtn">Proceed to checkout</button>
+      </div>
+    </aside>
+
+    <script src="auth.js"></script>
+    <script>
+      const PRODUCT = {
+        id: 1,
+        name: 'Bloom Rose Massager',
+        price: 39,
+        oldPrice: 59,
+        image: 'https://images.unsplash.com/photo-1519058497187-7167f17c6daf?auto=format&fit=crop&w=900&q=80',
+      };
+
+      // Keep the cart across page loads so logging in from checkout doesn't empty it.
+      const CART_KEY = 'comerence.cart';
+      const cart = (() => {
+        try { return JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) { return []; }
+      })();
+      let selectedColor = 'Ruby Red';
+      let quantity = 1;
+
+      const cartPanel = document.getElementById('cartPanel');
+      const overlay = document.getElementById('overlay');
+      const cartList = document.getElementById('cartList');
+      const cartTotal = document.getElementById('cartTotal');
+      const cartCount = document.getElementById('cartCount');
+      const qtyValue = document.getElementById('qtyValue');
+      const stickyBar = document.getElementById('stickyBar');
+
+      function formatCurrency(value) {
+        return new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }).format(value);
+      }
+
+      // Gallery
+      document.querySelectorAll('.thumb').forEach((thumb) => {
+        thumb.addEventListener('click', () => {
+          document.getElementById('mainImage').src = thumb.dataset.image;
+          document.querySelectorAll('.thumb').forEach((t) => t.classList.toggle('is-active', t === thumb));
+        });
+      });
+
+      // Colour swatches
+      document.querySelectorAll('.swatch').forEach((swatch) => {
+        swatch.addEventListener('click', () => {
+          selectedColor = swatch.dataset.color;
+          document.getElementById('colorValue').textContent = selectedColor;
+          document.querySelectorAll('.swatch').forEach((s) => s.classList.toggle('is-active', s === swatch));
+        });
+      });
+
+      // Quantity stepper
+      document.getElementById('qtyMinus').addEventListener('click', () => {
+        quantity = Math.max(1, quantity - 1);
+        qtyValue.textContent = quantity;
+      });
+      document.getElementById('qtyPlus').addEventListener('click', () => {
+        quantity = Math.min(10, quantity + 1);
+        qtyValue.textContent = quantity;
+      });
+
+      // FAQ accordion
+      document.querySelectorAll('.faq-question').forEach((button) => {
+        button.addEventListener('click', () => {
+          const item = button.closest('.faq-item');
+          item.classList.toggle('is-open');
+        });
+      });
+
+      function addCurrentToCart() {
+        const key = selectedColor;
+        const existing = cart.find((item) => item.color === key);
+
+        if (existing) {
+          existing.quantity += quantity;
+        } else {
+          cart.push({ ...PRODUCT, color: key, quantity });
+        }
+
+        renderCart();
+        openCart();
+      }
+
+      document.getElementById('addToCartBtn').addEventListener('click', addCurrentToCart);
+      document.getElementById('stickyAddBtn').addEventListener('click', addCurrentToCart);
+      document.getElementById('buyNowBtn').addEventListener('click', () => {
+        addCurrentToCart();
+        goToCheckout();
+      });
+
+      function goToCheckout() {
+        if (!cart.length) return;
+        const user = Auth.currentUser();
+        window.location.href = user ? 'checkout.html' : 'login.html?next=checkout.html';
+      }
+
+      function updateQuantity(color, change) {
+        const item = cart.find((entry) => entry.color === color);
+        if (!item) return;
+
+        item.quantity += change;
+        if (item.quantity <= 0) {
+          const index = cart.findIndex((entry) => entry.color === color);
+          cart.splice(index, 1);
+        }
+
+        renderCart();
+      }
+
+      function removeFromCart(color) {
+        const index = cart.findIndex((entry) => entry.color === color);
+        if (index >= 0) cart.splice(index, 1);
+        renderCart();
+      }
+
+      function renderCart() {
+        try { localStorage.setItem(CART_KEY, JSON.stringify(cart)); } catch (e) {}
+        const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+        cartCount.textContent = String(totalItems);
+
+        if (!cart.length) {
+          cartList.innerHTML = '<div class="cart-empty">Your cart is empty. Add Bloom to get started.</div>';
+          cartTotal.textContent = formatCurrency(0);
+          return;
+        }
+
+        const subtotal = cart.reduce((sum, item) => sum + item.quantity * item.price, 0);
+        cartTotal.textContent = formatCurrency(subtotal);
+
+        cartList.innerHTML = cart.map((item) => `
+          <div class="cart-item">
+            <img src="${item.image}" alt="${item.name}" />
+            <div>
+              <h4>${item.name}</h4>
+              <div class="meta">${item.color} · ${formatCurrency(item.price)} each</div>
+              <div class="qty-controls">
+                <button class="qty-btn" data-action="decrease" data-color="${item.color}">−</button>
+                <span>${item.quantity}</span>
+                <button class="qty-btn" data-action="increase" data-color="${item.color}">+</button>
+              </div>
+            </div>
+            <div>
+              <div style="font-weight:700; margin-bottom:8px;">${formatCurrency(item.quantity * item.price)}</div>
+              <button data-color="${item.color}">Remove</button>
+            </div>
+          </div>
+        `).join('');
+
+        cartList.querySelectorAll('[data-action="increase"]').forEach((button) => {
+          button.addEventListener('click', () => updateQuantity(button.dataset.color, 1));
+        });
+
+        cartList.querySelectorAll('[data-action="decrease"]').forEach((button) => {
+          button.addEventListener('click', () => updateQuantity(button.dataset.color, -1));
+        });
+
+        cartList.querySelectorAll('button[data-color]').forEach((button) => {
+          if (!button.dataset.action) {
+            button.addEventListener('click', () => removeFromCart(button.dataset.color));
+          }
+        });
+      }
+
+      function openCart() {
+        cartPanel.classList.add('is-open');
+        overlay.classList.add('is-visible');
+      }
+
+      function closeCart() {
+        cartPanel.classList.remove('is-open');
+        overlay.classList.remove('is-visible');
+      }
+
+      document.getElementById('cartToggle').addEventListener('click', openCart);
+      document.getElementById('closeCart').addEventListener('click', closeCart);
+      overlay.addEventListener('click', closeCart);
+
+      document.getElementById('checkoutBtn').addEventListener('click', () => {
+        if (!cart.length) {
+          Auth.toast('Your cart is empty. Add Bloom first.');
+          return;
+        }
+        const user = Auth.currentUser();
+        window.location.href = user ? 'checkout.html' : 'login.html?next=checkout.html';
+      });
+
+      // Sticky buy bar
+      const buyPanel = document.getElementById('buy');
+      const io = new IntersectionObserver(
+        ([entry]) => {
+          stickyBar.classList.toggle('is-visible', !entry.isIntersecting);
+        },
+        { threshold: 0 }
+      );
+      io.observe(buyPanel);
+
+      const waFloat = document.getElementById('waFloat');
+      if (waFloat) {
+        waFloat.classList.add('is-visible');
+      }
+
+      Auth.mountNavAccount(document.getElementById('accountSlot'));
+      renderCart();
+    </script>
+  </body>
+</html>

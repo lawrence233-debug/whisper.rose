@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log in | Whisper Rose</title>
+    <meta name="description" content="Log in to your Whisper Rose account to track orders and manage your details." />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="auth.js"></script>
+    <!-- Real federated sign-in SDKs. Both are safe to load even before you've set up
+         credentials — the buttons below fall back to a demo flow until then. -->
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
+    <script>
+      // Already signed in? Skip the form.
+      if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <a href="comerence.html" class="brand" aria-label="Whisper Rose home">
+          <span class="brand-mark">W</span>
+          <span>Whisper Rose</span>
+        </a>
+        <div class="nav-actions">
+          <span class="auth-hint">New here?</span>
+          <a href="signup.html" class="secondary-btn">Create account</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <span class="eyebrow">Welcome back</span>
+        <h1>Log in to your account</h1>
+        <p class="auth-sub">Track orders, save details, and check out faster.</p>
+
+        <div class="form-alert" id="formAlert" role="alert" hidden></div>
+
+        <form id="loginForm" novalidate>
+          <label class="field">
+            <span>Email address</span>
+            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="username" required />
+            <span class="field-error" id="emailError"></span>
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
+              <button type="button" class="toggle-visibility" id="togglePassword" aria-label="Show password">👁</button>
+            </div>
+            <span class="field-error" id="passwordError"></span>
+          </label>
+
+          <div class="field-row">
+            <label class="checkbox-line">
+              <input type="checkbox" id="remember" name="remember" checked />
+              <span>Keep me logged in</span>
+            </label>
+            <a href="#" class="inline-link" id="forgotLink">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="primary-btn auth-submit" id="submitBtn">Log in</button>
+        </form>
+
+        <div class="auth-divider"><span>or continue with</span></div>
+
+        <div class="social-row">
+          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
+          <button type="button" class="social-btn" id="googleBtn">
+            <span class="social-icon">G</span> Google
+          </button>
+          <button type="button" class="social-btn" id="appleBtn">
+            <span class="social-icon"></span> Apple
+          </button>
+        </div>
+
+        <p class="auth-footnote">
+          Don't have an account? <a href="signup.html" class="inline-link">Sign up</a>
+        </p>
+      </div>
+    </main>
+
+    <footer class="auth-footer">
+      <div class="container">
+        <p>&copy; 2026 Whisper Rose. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      const form = document.getElementById('loginForm');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const formAlert = document.getElementById('formAlert');
+      const submitBtn = document.getElementById('submitBtn');
+      const toggleBtn = document.getElementById('togglePassword');
+
+      let lockTimer = null;
+
+      function setError(input, errorEl, message) {
+        errorEl.textContent = message;
+        input.classList.toggle('has-error', Boolean(message));
+      }
+
+      function showAlert(message, kind) {
+        formAlert.textContent = message;
+        formAlert.className = 'form-alert' + (kind ? ' is-' + kind : '');
+        formAlert.hidden = false;
+      }
+
+      function clearAlert() {
+        formAlert.hidden = true;
+        formAlert.textContent = '';
+      }
+
+      function setLoading(loading) {
+        submitBtn.disabled = loading;
+        submitBtn.textContent = loading ? 'Logging in…' : 'Log in';
+      }
+
+      function startLockCountdown(ms) {
+        clearInterval(lockTimer);
+        const until = Date.now() + ms;
+        submitBtn.disabled = true;
+
+        function tick() {
+          const left = Math.ceil((until - Date.now()) / 1000);
+          if (left <= 0) {
+            clearInterval(lockTimer);
+            clearAlert();
+            submitBtn.disabled = false;
+            return;
+          }
+          showAlert('Too many failed attempts. Try again in ' + left + 's, or reset your password.');
+        }
+        tick();
+        lockTimer = setInterval(tick, 1000);
+      }
+
+      function finishLogin(user, message) {
+        Auth.toast(message + ', ' + user.name.split(' ')[0] + '.');
+        setTimeout(() => window.location.replace(Auth.nextUrl()), 700);
+      }
+
+      // Tell people why they were sent here (e.g. from checkout).
+      if (new URLSearchParams(window.location.search).get('next')) {
+        showAlert('Log in to continue.', 'info');
+      }
+
+      // Warn up front if this page can't do secure crypto at all (very old browser,
+      // or a context the browser doesn't trust), rather than only failing on submit.
+      if (!window.crypto || !window.crypto.subtle) {
+        showAlert('This browser can\u2019t run secure login on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        const show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
+        toggleBtn.textContent = show ? '🙈' : '👁';
+        toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      });
+
+      emailInput.addEventListener('input', () => setError(emailInput, emailError, ''));
+      passwordInput.addEventListener('input', () => setError(passwordInput, passwordError, ''));
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearAlert();
+        let valid = true;
+
+        if (!Auth.isValidEmail(emailInput.value.trim())) {
+          setError(emailInput, emailError, 'Enter a valid email address.');
+          valid = false;
+        }
+        if (!passwordInput.value) {
+          setError(passwordInput, passwordError, 'Enter your password.');
+          valid = false;
+        }
+        if (!valid) return;
+
+        setLoading(true);
+        try {
+          const result = await Auth.logIn({
+            email: emailInput.value,
+            password: passwordInput.value,
+            remember: document.getElementById('remember').checked,
+          });
+
+          if (result.ok) {
+            finishLogin(result.user, 'Welcome back');
+            return;
+          }
+
+          if (result.code === 'locked') {
+            startLockCountdown(result.retryIn);
+            return;
+          }
+
+          if (result.code === 'invalid' && result.accountsHere === 0) {
+            showAlert(
+              'Incorrect email or password. Also: no accounts are saved for this address (' +
+                Auth.storageOrigin() +
+                '). Saved logins don\u2019t carry over between file:// and http://, or between ' +
+                'different ports \u2014 open the site the same way you signed up.'
+            );
+          } else {
+            showAlert(result.message);
+          }
+          passwordInput.value = '';
+          passwordInput.focus();
+        } catch (err) {
+          showAlert(
+            err && err.message === 'crypto-unavailable'
+              ? 'Secure login needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+              : 'Something went wrong. Please try again.'
+          );
+        }
+        setLoading(false);
+      });
+
+      document.getElementById('forgotLink').addEventListener('click', async (event) => {
+        event.preventDefault();
+
+        const step1 = await Auth.modal({
+          title: 'Reset your password',
+          intro: 'Demo storefront: no email is sent, so you can set a new password right here.',
+          submitLabel: 'Continue',
+          fields: [
+            { name: 'email', label: 'Email address', type: 'email', placeholder: 'you@example.com', autocomplete: 'email' },
+          ],
+          onSubmit: (v) => {
+            if (!Auth.isValidEmail(v.email.trim())) return { field: 'email', message: 'Enter a valid email address.' };
+            if (!Auth.accountExists(v.email)) return { field: 'email', message: "We couldn't find an account with that email." };
+          },
+        });
+        if (!step1) return;
+
+        const step2 = await Auth.modal({
+          title: 'Choose a new password',
+          intro: 'Use at least 8 characters, with a letter and a number.',
+          submitLabel: 'Save password',
+          fields: [
+            { name: 'password', label: 'New password', type: 'password', autocomplete: 'new-password' },
+            { name: 'confirm', label: 'Confirm new password', type: 'password', autocomplete: 'new-password' },
+          ],
+          onSubmit: async (v) => {
+            const problem = Auth.validatePassword(v.password);
+            if (problem) return { field: 'password', message: problem };
+            if (v.password !== v.confirm) return { field: 'confirm', message: 'Passwords do not match.' };
+            const res = await Auth.resetPassword(step1.email, v.password);
+            if (!res.ok) return { message: res.message };
+          },
+        });
+        if (!step2) return;
+
+        emailInput.value = step1.email.trim();
+        passwordInput.value = '';
+        passwordInput.focus();
+        clearInterval(lockTimer);
+        submitBtn.disabled = false;
+        showAlert('Password updated. Log in with your new password.', 'success');
+      });
+
+      /* ---------- Federated sign-in (Google / Apple) ----------
+       *
+       * These call the REAL Google Identity Services and Sign in with Apple JS SDKs.
+       * Both need one-time setup in each provider's developer console before they'll
+       * do anything but fall back to a local demo flow:
+       *
+       * GOOGLE — https://console.cloud.google.com/apis/credentials
+       *   1. Create an OAuth client ID of type "Web application".
+       *   2. Add this site's exact origin(s) under "Authorized JavaScript origins"
+       *      (e.g. https://your-domain.com, and http://localhost:8080 for local dev).
+       *   3. Paste the client ID below as GOOGLE_CLIENT_ID.
+       *
+       * APPLE — https://developer.apple.com/account/resources/identifiers/list/serviceId
+       *   (requires a paid Apple Developer account; Apple will NOT work over
+       *   http://localhost or file:// — only a real, verified https:// domain)
+       *   1. Create a Services ID and enable "Sign in with Apple" on it.
+       *   2. Configure its Web Authentication with your exact domain and the exact
+       *      return URL(s) you'll redirect to.
+       *   3. Paste the Services ID below as APPLE_CLIENT_ID, and set
+       *      APPLE_REDIRECT_URI to the exact return URL you registered.
+       */
+      const GOOGLE_CLIENT_ID = ''; // e.g. '1234567890-abc123.apps.googleusercontent.com'
+      const APPLE_CLIENT_ID = ''; // e.g. 'com.comerence.web'
+      const APPLE_REDIRECT_URI = 'https://your-domain.com/login.html';
+
+      async function runDemoSocial(provider) {
+        Auth.toast(provider + ' isn\u2019t configured yet, so this is using the local demo flow. See the comment above for how to enable the real thing.', 'info');
+        const result = await Auth.socialSignIn(provider);
+        if (result && result.ok) finishLogin(result.user, result.isNew ? 'Account created' : 'Welcome back');
+      }
+
+      async function handleGoogleCredential(response) {
+        const result = await Auth.federatedSignIn('google', {
+          idToken: response.credential,
+          clientId: GOOGLE_CLIENT_ID,
+        });
+        if (result.ok) finishLogin(result.user, result.isNew ? 'Account created' : 'Welcome back');
+        else showAlert(result.message);
+      }
+
+      document.getElementById('appleBtn').addEventListener('click', async () => {
+        if (!APPLE_CLIENT_ID || !window.AppleID) { runDemoSocial('Apple'); return; }
+        try {
+          AppleID.auth.init({
+            clientId: APPLE_CLIENT_ID,
+            scope: 'name email',
+            redirectURI: APPLE_REDIRECT_URI,
+            usePopup: true,
+          });
+          const response = await AppleID.auth.signIn();
+          const idToken = response.authorization && response.authorization.id_token;
+          const fallbackName = response.user && response.user.name
+            ? [response.user.name.firstName, response.user.name.lastName].filter(Boolean).join(' ')
+            : '';
+          const result = await Auth.federatedSignIn('apple', { idToken, clientId: APPLE_CLIENT_ID, fallbackName });
+          if (result.ok) finishLogin(result.user, result.isNew ? 'Account created' : 'Welcome back');
+          else showAlert(result.message);
+        } catch (err) {
+          if (err && err.error === 'popup_closed_by_user') return;
+          showAlert('Apple sign-in failed. Please try again.');
+        }
+      });
+
+      // Google's button must be rendered by Google's own script once it has loaded,
+      // so wait for window 'load' rather than assuming it's ready immediately.
+      window.addEventListener('load', () => {
+        if (GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.id) {
+          google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
+          document.getElementById('googleBtn').hidden = true;
+          const mount = document.getElementById('googleBtnMount');
+          mount.hidden = false;
+          google.accounts.id.renderButton(mount, { theme: 'outline', size: 'large', shape: 'pill', width: 280 });
+        } else {
+          document.getElementById('googleBtn').addEventListener('click', () => runDemoSocial('Google'));
+        }
+      });
+    </script>
+  </body>
+</html>
