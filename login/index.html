@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Log in | Whisper Rose</title>
+    <meta name="description" content="Log in to your Whisper Rose account to track orders and manage your details." />
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="../auth.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
+    <script>
+      if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <a href="../comerence.html" class="brand" aria-label="Whisper Rose home">
+          <span class="brand-mark">W</span>
+          <span>Whisper Rose</span>
+        </a>
+        <div class="nav-actions">
+          <span class="auth-hint">New here?</span>
+          <a href="../signup/index.html" class="secondary-btn">Create account</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <span class="eyebrow">Welcome back</span>
+        <h1>Log in to your account</h1>
+        <p class="auth-sub">Track orders, save details, and check out faster.</p>
+
+        <div class="form-alert" id="formAlert" role="alert" hidden></div>
+
+        <form id="loginForm" novalidate>
+          <label class="field">
+            <span>Email address</span>
+            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="username" required />
+            <span class="field-error" id="emailError"></span>
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" placeholder="Enter your password" autocomplete="current-password" required />
+              <button type="button" class="toggle-visibility" id="togglePassword" aria-label="Show password">👁</button>
+            </div>
+            <span class="field-error" id="passwordError"></span>
+          </label>
+
+          <div class="field-row">
+            <label class="checkbox-line">
+              <input type="checkbox" id="remember" name="remember" checked />
+              <span>Keep me logged in</span>
+            </label>
+            <a href="#" class="inline-link" id="forgotLink">Forgot password?</a>
+          </div>
+
+          <button type="submit" class="primary-btn auth-submit" id="submitBtn">Log in</button>
+        </form>
+
+        <div class="auth-divider"><span>or continue with</span></div>
+
+        <div class="social-row">
+          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
+          <button type="button" class="social-btn" id="googleBtn">
+            <span class="social-icon">G</span> Google
+          </button>
+          <button type="button" class="social-btn" id="appleBtn">
+            <span class="social-icon"></span> Apple
+          </button>
+        </div>
+
+        <p class="auth-footnote">
+          Don't have an account? <a href="../signup/index.html" class="inline-link">Sign up</a>
+        </p>
+      </div>
+    </main>
+
+    <footer class="auth-footer">
+      <div class="container">
+        <p>&copy; 2026 Whisper Rose. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      const form = document.getElementById('loginForm');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const formAlert = document.getElementById('formAlert');
+      const submitBtn = document.getElementById('submitBtn');
+      const toggleBtn = document.getElementById('togglePassword');
+
+      let lockTimer = null;
+
+      function setError(input, errorEl, message) {
+        errorEl.textContent = message;
+        input.classList.toggle('has-error', Boolean(message));
+      }
+
+      function showAlert(message, kind) {
+        formAlert.textContent = message;
+        formAlert.className = 'form-alert' + (kind ? ' is-' + kind : '');
+        formAlert.hidden = false;
+      }
+
+      function clearAlert() {
+        formAlert.hidden = true;
+        formAlert.textContent = '';
+      }
+
+      function setLoading(loading) {
+        submitBtn.disabled = loading;
+        submitBtn.textContent = loading ? 'Logging in…' : 'Log in';
+      }
+
+      function startLockCountdown(ms) {
+        clearInterval(lockTimer);
+        const until = Date.now() + ms;
+        submitBtn.disabled = true;
+
+        function tick() {
+          const left = Math.ceil((until - Date.now()) / 1000);
+          if (left <= 0) {
+            clearInterval(lockTimer);
+            clearAlert();
+            submitBtn.disabled = false;
+            return;
+          }
+          showAlert('Too many failed attempts. Try again in ' + left + 's, or reset your password.');
+        }
+        tick();
+        lockTimer = setInterval(tick, 1000);
+      }
+
+      function finishLogin(user, message) {
+        Auth.toast(message + ', ' + user.name.split(' ')[0] + '.');
+        setTimeout(() => window.location.replace(Auth.nextUrl()), 700);
+      }
+
+      if (new URLSearchParams(window.location.search).get('next')) {
+        showAlert('Log in to continue.', 'info');
+      }
+
+      if (!window.crypto || !window.crypto.subtle) {
+        showAlert('This browser can’t run secure login on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+      }
+
+      toggleBtn.addEventListener('click', () => {
+        const show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
+        toggleBtn.textContent = show ? '🙈' : '👁';
+        toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      });
+
+      emailInput.addEventListener('input', () => setError(emailInput, emailError, ''));
+      passwordInput.addEventListener('input', () => setError(passwordInput, passwordError, ''));
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        clearAlert();
+        let valid = true;
+
+        if (!Auth.isValidEmail(emailInput.value.trim())) {
+          setError(emailInput, emailError, 'Enter a valid email address.');
+          valid = false;
+        }
+        if (!passwordInput.value) {
+          setError(passwordInput, passwordError, 'Enter your password.');
+          valid = false;
+        }
+        if (!valid) return;
+
+        setLoading(true);
+        try {
+          const result = await Auth.logIn({
+            email: emailInput.value,
+            password: passwordInput.value,
+            remember: document.getElementById('remember').checked,
+          });
+
+          if (result.ok) {
+            finishLogin(result.user, 'Welcome back');
+            return;
+          }
+
+          if (result.code === 'locked') {
+            startLockCountdown(result.retryIn);
+            return;
+          }
+
+          if (result.code === 'invalid' && result.accountsHere === 0) {
+            showAlert('Incorrect email or password. Also: no accounts are saved for this address (' + Auth.storageOrigin() + '). Saved logins don’t carry over between file:// and http://, or between different ports — open the site the same way you signed up.');
+          } else {
+            showAlert(result.message);
+          }
+          passwordInput.value = '';
+          passwordInput.focus();
+        } catch (err) {
+          showAlert(err && err.message === 'crypto-unavailable'
+            ? 'Secure login needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+            : 'Something went wrong. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>

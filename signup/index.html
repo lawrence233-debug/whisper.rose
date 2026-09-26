@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Create an account | Whisper Rose</title>
+    <meta name="description" content="Create a Whisper Rose account to check out faster, track orders, and save your details." />
+    <link rel="stylesheet" href="../styles.css" />
+    <script src="../auth.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async></script>
+    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
+    <script>
+      if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
+    </script>
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="container nav">
+        <a href="../comerence.html" class="brand" aria-label="Whisper Rose home">
+          <span class="brand-mark">W</span>
+          <span>Whisper Rose</span>
+        </a>
+        <div class="nav-actions">
+          <span class="auth-hint">Already have an account?</span>
+          <a href="../login/index.html" class="secondary-btn">Log in</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="auth-main">
+      <div class="auth-card">
+        <span class="eyebrow">Get started</span>
+        <h1>Create your account</h1>
+        <p class="auth-sub">Discreet packaging, saved details, and faster checkout every time.</p>
+
+        <div class="form-alert" id="formAlert" role="alert" hidden></div>
+
+        <form id="signupForm" novalidate>
+          <label class="field">
+            <span>Full name</span>
+            <input type="text" id="fullName" name="fullName" placeholder="Jordan Taylor" autocomplete="name" required />
+            <span class="field-error" id="nameError"></span>
+          </label>
+
+          <label class="field">
+            <span>Email address</span>
+            <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required />
+            <span class="field-error" id="emailError"></span>
+          </label>
+
+          <label class="field">
+            <span>Password</span>
+            <div class="password-wrap">
+              <input type="password" id="password" name="password" placeholder="At least 8 characters" autocomplete="new-password" required />
+              <button type="button" class="toggle-visibility" id="togglePassword" aria-label="Show password">👁</button>
+            </div>
+            <div class="strength" id="strength" data-level="0" aria-live="polite">
+              <div class="strength-bar"><i></i><i></i><i></i><i></i></div>
+              <small id="strengthLabel">Use 8+ characters with a letter and a number.</small>
+            </div>
+            <span class="field-error" id="passwordError"></span>
+          </label>
+
+          <label class="field">
+            <span>Confirm password</span>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" autocomplete="new-password" required />
+            <span class="field-error" id="confirmError"></span>
+          </label>
+
+          <label class="checkbox-line">
+            <input type="checkbox" id="ageConfirm" name="ageConfirm" required />
+            <span>I confirm that I am 18 years of age or older.</span>
+          </label>
+          <span class="field-error" id="ageError"></span>
+
+          <label class="checkbox-line">
+            <input type="checkbox" id="terms" name="terms" required />
+            <span>I agree to the <a href="#" class="inline-link">Terms of Service</a> and <a href="#" class="inline-link">Privacy Policy</a>.</span>
+          </label>
+          <span class="field-error" id="termsError"></span>
+
+          <button type="submit" class="primary-btn auth-submit" id="submitBtn">Create account</button>
+        </form>
+
+        <div class="auth-divider"><span>or continue with</span></div>
+
+        <div class="social-row">
+          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
+          <button type="button" class="social-btn" id="googleBtn">
+            <span class="social-icon">G</span> Google
+          </button>
+          <button type="button" class="social-btn" id="appleBtn">
+            <span class="social-icon"></span> Apple
+          </button>
+        </div>
+
+        <p class="auth-footnote">
+          Already have an account? <a href="../login/index.html" class="inline-link">Log in</a>
+        </p>
+      </div>
+    </main>
+
+    <footer class="auth-footer">
+      <div class="container">
+        <p>&copy; 2026 Whisper Rose. All rights reserved.</p>
+      </div>
+    </footer>
+
+    <script>
+      const form = document.getElementById('signupForm');
+      const nameInput = document.getElementById('fullName');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const confirmInput = document.getElementById('confirmPassword');
+      const ageConfirm = document.getElementById('ageConfirm');
+      const terms = document.getElementById('terms');
+      const submitBtn = document.getElementById('submitBtn');
+      const formAlert = document.getElementById('formAlert');
+      const strengthEl = document.getElementById('strength');
+      const strengthLabel = document.getElementById('strengthLabel');
+      const nameError = document.getElementById('nameError');
+      const emailError = document.getElementById('emailError');
+      const passwordError = document.getElementById('passwordError');
+      const confirmError = document.getElementById('confirmError');
+      const ageError = document.getElementById('ageError');
+      const termsError = document.getElementById('termsError');
+
+      function setError(input, errorEl, message) {
+        errorEl.textContent = message;
+        input.classList.toggle('has-error', Boolean(message));
+      }
+
+      const checks = {
+        name: () => (nameInput.value.trim() ? '' : 'Enter your full name.'),
+        email: () => (Auth.isValidEmail(emailInput.value.trim()) ? '' : 'Enter a valid email address.'),
+        password: () => Auth.validatePassword(passwordInput.value),
+        confirm: () =>
+          confirmInput.value && confirmInput.value === passwordInput.value ? '' : 'Passwords do not match.',
+      };
+
+      if (!window.crypto || !window.crypto.subtle) {
+        showAlert('This browser can’t run secure sign-up on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+      }
+
+      const wiring = [
+        ['name', nameInput, nameError],
+        ['email', emailInput, emailError],
+        ['password', passwordInput, passwordError],
+        ['confirm', confirmInput, confirmError],
+      ];
+
+      wiring.forEach(([key, input, errorEl]) => {
+        input.addEventListener('blur', () => {
+          if (input.value) setError(input, errorEl, checks[key]());
+        });
+        input.addEventListener('input', () => {
+          if (input.classList.contains('has-error')) setError(input, errorEl, checks[key]());
+        });
+      });
+
+      passwordInput.addEventListener('input', () => {
+        const { score, label } = Auth.passwordStrength(passwordInput.value);
+        strengthEl.dataset.level = String(score);
+        strengthLabel.textContent = label || 'Use 8+ characters with a letter and a number.';
+        if (confirmInput.value) setError(confirmInput, confirmError, checks.confirm());
+      });
+
+      ageConfirm.addEventListener('change', () => { if (ageConfirm.checked) ageError.textContent = ''; });
+      terms.addEventListener('change', () => { if (terms.checked) termsError.textContent = ''; });
+
+      const toggleBtn = document.getElementById('togglePassword');
+      toggleBtn.addEventListener('click', () => {
+        const show = passwordInput.type === 'password';
+        passwordInput.type = show ? 'text' : 'password';
+        confirmInput.type = show ? 'text' : 'password';
+        toggleBtn.textContent = show ? '🙈' : '👁';
+        toggleBtn.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
+      });
+
+      function showAlert(message) {
+        formAlert.textContent = message;
+        formAlert.className = 'form-alert';
+        formAlert.hidden = false;
+      }
+
+      function setLoading(loading) {
+        submitBtn.disabled = loading;
+        submitBtn.textContent = loading ? 'Creating account…' : 'Create account';
+      }
+
+      function finishSignup(user, message) {
+        Auth.toast(message + ', ' + user.name.split(' ')[0] + '!');
+        setTimeout(() => window.location.replace(Auth.nextUrl()), 800);
+      }
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        formAlert.hidden = true;
+        let firstInvalid = null;
+
+        wiring.forEach(([key, input, errorEl]) => {
+          const message = checks[key]();
+          setError(input, errorEl, message);
+          if (message && !firstInvalid) firstInvalid = input;
+        });
+
+        ageError.textContent = ageConfirm.checked ? '' : 'You must confirm you are 18 or older to continue.';
+        termsError.textContent = terms.checked ? '' : 'You must agree to the terms to continue.';
+
+        if (firstInvalid) { firstInvalid.focus(); return; }
+        if (!ageConfirm.checked || !terms.checked) return;
+
+        setLoading(true);
+        try {
+          const result = await Auth.signUp({
+            name: nameInput.value.trim(),
+            email: emailInput.value.trim(),
+            password: passwordInput.value,
+          });
+
+          if (result.ok) {
+            finishSignup(result.user, 'Account created');
+            return;
+          }
+
+          if (result.code === 'exists') {
+            showAlert('An account with this email already exists.');
+            emailInput.focus();
+            return;
+          }
+
+          showAlert(result.message || 'Something went wrong. Please try again.');
+        } catch (err) {
+          showAlert(err && err.message === 'crypto-unavailable'
+            ? 'Secure sign-up needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+            : 'Something went wrong. Please try again.');
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>
