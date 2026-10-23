@@ -4,11 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Checkout | Whisper Rose</title>
-    <meta name="description" content="Complete your Whisper Rose order securely by card or Paystack." />
+    <meta name="description" content="Complete your Whisper Rose order through secure Paystack checkout." />
     <link rel="stylesheet" href="styles.css" />
     <script src="auth.js"></script>
     <script>
       // This page requires an account — bounce straight back here after login.
+      const checkoutParams = new URLSearchParams(window.location.search);
+      try {
+        if (checkoutParams.get('reference')) sessionStorage.setItem('comerence.checkout.reference', checkoutParams.get('reference'));
+        if (checkoutParams.get('payment')) sessionStorage.setItem('comerence.checkout.payment', checkoutParams.get('payment'));
+      } catch (error) {}
       if (!Auth.currentUser()) window.location.replace('login.html?next=' + encodeURIComponent('checkout.html'));
     </script>
   </head>
@@ -37,7 +42,7 @@
       </div>
 
       <div class="container">
-        <form id="checkoutForm" class="checkout-shell" novalidate>
+        <div class="checkout-shell">
           <div class="checkout-main">
             <section class="checkout-section">
               <h2 class="checkout-section-title"><span class="step-num">1</span> Contact &amp; shipping</h2>
@@ -50,13 +55,13 @@
 
               <label class="field">
                 <span>Email address</span>
-                <input type="email" id="contactEmail" name="contactEmail" placeholder="you@example.com" autocomplete="email" required />
+                <input type="email" id="contactEmail" name="contactEmail" placeholder="you@example.com" autocomplete="email" readonly required />
                 <span class="field-error" id="contactEmailError"></span>
               </label>
 
               <label class="field">
                 <span>Phone number</span>
-                <input type="tel" id="phone" name="phone" placeholder="+1 555 000 0000" autocomplete="tel" />
+                <input type="tel" id="phone" name="phone" placeholder="+233 24 000 0000" autocomplete="tel" required />
                 <span class="field-error" id="phoneError"></span>
               </label>
 
@@ -91,8 +96,8 @@
               <label class="field">
                 <span>Country</span>
                 <select id="country" name="country" class="select-input" autocomplete="country-name">
+                  <option selected>Ghana</option>
                   <option>United States</option>
-                  <option>Ghana</option>
                   <option>Nigeria</option>
                   <option>United Kingdom</option>
                   <option>Canada</option>
@@ -100,73 +105,6 @@
                   <option>Other</option>
                 </select>
               </label>
-            </section>
-
-            <section class="checkout-section">
-              <h2 class="checkout-section-title"><span class="step-num">2</span> Payment method</h2>
-
-              <div class="payment-tabs" role="tablist">
-                <button type="button" class="payment-tab is-active" data-tab="card" role="tab" aria-selected="true">
-                  💳 Credit / debit card
-                </button>
-                <button type="button" class="payment-tab" data-tab="paystack" role="tab" aria-selected="false">
-                  <span class="paystack-mark">P</span> Paystack
-                </button>
-              </div>
-
-              <div class="payment-panel" data-panel="card">
-                <label class="field">
-                  <span>Name on card</span>
-                  <input type="text" id="cardName" name="cardName" placeholder="Jordan Taylor" autocomplete="cc-name" />
-                  <span class="field-error" id="cardNameError"></span>
-                </label>
-
-                <label class="field">
-                  <span>Card number</span>
-                  <div class="card-number-wrap">
-                    <input type="text" id="cardNumber" name="cardNumber" inputmode="numeric" placeholder="1234 5678 9012 3456" autocomplete="cc-number" maxlength="23" />
-                    <span class="card-brand" id="cardBrand"></span>
-                  </div>
-                  <span class="field-error" id="cardNumberError"></span>
-                </label>
-
-                <div class="grid-2">
-                  <label class="field">
-                    <span>Expiry (MM/YY)</span>
-                    <input type="text" id="cardExpiry" name="cardExpiry" inputmode="numeric" placeholder="MM/YY" autocomplete="cc-exp" maxlength="5" />
-                    <span class="field-error" id="cardExpiryError"></span>
-                  </label>
-                  <label class="field">
-                    <span>CVC</span>
-                    <input type="text" id="cardCvc" name="cardCvc" inputmode="numeric" placeholder="123" autocomplete="cc-csc" maxlength="4" />
-                    <span class="field-error" id="cardCvcError"></span>
-                  </label>
-                </div>
-
-                <label class="checkbox-line">
-                  <input type="checkbox" id="saveCard" name="saveCard" />
-                  <span>Save this card for next time</span>
-                </label>
-
-                <p class="payment-note">🔒 This is a demo storefront — card details stay in your browser and are never sent anywhere or charged. Wire this form up to a real, PCI-compliant payment processor before taking live payments.</p>
-              </div>
-
-              <div class="payment-panel" data-panel="paystack" hidden>
-                <p class="payment-copy">
-                  You'll be taken to Paystack's secure checkout to pay by card, bank transfer, USSD, or mobile money — your details never touch our servers.
-                </p>
-                <div class="paystack-badge-row">
-                  <span class="pay-badge">Visa</span>
-                  <span class="pay-badge">Mastercard</span>
-                  <span class="pay-badge">Verve</span>
-                  <span class="pay-badge">Bank transfer</span>
-                  <span class="pay-badge">USSD</span>
-                  <span class="pay-badge">Mobile money</span>
-                </div>
-                <p class="payment-note" id="paystackDemoNote" hidden>
-                  🔒 Demo mode: no Paystack public key is configured, so this simulates the payment instead of opening a real popup. Add your <code>pk_test_…</code> key near the top of <code>checkout.html</code> to take real payments.
-                </p>
-              </div>
             </section>
           </div>
 
@@ -181,11 +119,11 @@
 
             <div class="summary-row">
               <span>Subtotal</span>
-              <strong id="sumSubtotal">$0.00</strong>
+              <strong id="sumSubtotal">—</strong>
             </div>
             <div class="summary-row" id="sumDiscountRow" hidden>
               <span>Promo discount</span>
-              <strong id="sumDiscount">-$0.00</strong>
+              <strong id="sumDiscount">—</strong>
             </div>
             <div class="summary-row">
               <span>Shipping</span>
@@ -193,14 +131,16 @@
             </div>
             <div class="summary-row">
               <span>Estimated tax</span>
-              <strong id="sumTax">$0.00</strong>
+              <strong id="sumTax">—</strong>
             </div>
             <div class="summary-row summary-total">
               <span>Total</span>
-              <strong id="sumTotal">$0.00</strong>
+              <strong id="sumTotal">—</strong>
             </div>
 
-            <button type="submit" class="primary-btn checkout-btn" id="placeOrderBtn" form="checkoutForm">Pay $0.00</button>
+            <div class="form-alert" id="checkoutAlert" role="alert" hidden></div>
+            <p class="payment-note" id="paymentAvailability" role="status">Checking secure payment availability…</p>
+            <button type="button" class="primary-btn checkout-btn" id="placeOrderBtn" disabled>Continue to Paystack</button>
 
             <div class="trust-row checkout-trust">
               <span>🔒 Secure checkout</span>
@@ -208,23 +148,19 @@
               <span>↩️ 30-day returns</span>
             </div>
           </aside>
-        </form>
+        </div>
       </div>
 
       <div class="container">
         <section class="order-success" id="orderSuccess" hidden>
           <div class="success-badge">✓</div>
           <h1>Order confirmed</h1>
-          <p class="auth-sub">Thanks — a confirmation has been "sent" to your email for this demo order.</p>
-
+          <p class="auth-sub">Your payment was verified securely. We’ll prepare your order for delivery.</p>
           <div class="success-details">
-            <div class="spec-row"><span>Order number</span><span id="successOrderNumber"></span></div>
+            <div class="spec-row"><span>Order reference</span><span id="successOrderNumber"></span></div>
             <div class="spec-row"><span>Items</span><span id="successCount"></span></div>
-            <div class="spec-row"><span>Payment method</span><span id="successMethod"></span></div>
             <div class="spec-row"><span>Amount paid</span><span id="successTotal"></span></div>
-            <div class="spec-row"><span>Estimated delivery</span><span>2–4 business days</span></div>
           </div>
-
           <div class="success-actions">
             <a href="comerence.html" class="primary-btn">Continue shopping</a>
           </div>
@@ -238,61 +174,66 @@
       </div>
     </footer>
 
-    <script src="https://js.paystack.co/v1/inline.js"></script>
     <script>
       const user = Auth.currentUser();
-
-      /* ---------- Paystack config ----------
-       * Set the key below to your real Paystack public key to turn this demo checkout
-       * into a live payment flow. The key must start with pk_test_ or pk_live_ and can
-       * be created in your Paystack dashboard:
-       * https://dashboard.paystack.com/#/settings/developer
-       * NOTE: for production, always verify the transaction on a server using your
-       * Paystack secret key before fulfilling the order. */
-      window.COMERENCE_PAYSTACK_PUBLIC_KEY = window.COMERENCE_PAYSTACK_PUBLIC_KEY || 'pk_test_YOUR_PUBLIC_KEY_HERE';
-      const PAYSTACK_PUBLIC_KEY = window.COMERENCE_PAYSTACK_PUBLIC_KEY || '';
-      const PAYSTACK_CURRENCY = 'NGN'; // match the currency your Paystack account settles in (NGN, GHS, ZAR, USD…)
-
       const CART_KEY = 'comerence.cart';
-      const TAX_RATE = 0.08;
+      const SHIPPING_KEY = 'comerence.checkout.shipping';
+      const PROMO_KEY = 'comerence.checkout.promo';
+      const PAYMENT_REFERENCE_KEY = 'comerence.checkout.reference';
+      const PAYMENT_STATUS_KEY = 'comerence.checkout.payment';
+      const shippingFields = ['contactName', 'contactEmail', 'phone', 'address1', 'address2', 'city', 'region', 'postal', 'country'];
       let cart = [];
-      try { cart = JSON.parse(localStorage.getItem(CART_KEY)) || []; } catch (e) {}
-      let discount = 0;
-      let activeMethod = 'card';
+      try {
+        const savedCart = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
+        cart = Array.isArray(savedCart) ? savedCart.filter((item) => item && typeof item === 'object') : [];
+      } catch (e) {}
+      let quote = null;
+      let pendingReference = '';
+      let paymentLocked = false;
 
       function formatCurrency(value) {
         return new Intl.NumberFormat('en-GH', { style: 'currency', currency: 'GHS' }).format(value);
       }
 
-      function setError(input, errorEl, message) {
-        if (!errorEl) return;
-        errorEl.textContent = message;
-        input.classList.toggle('has-error', Boolean(message));
+      function showCheckoutError(message) {
+        const alert = document.getElementById('checkoutAlert');
+        alert.textContent = message;
+        alert.hidden = false;
       }
 
-      function totals() {
-        const subtotal = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
-        const discountAmount = subtotal * discount;
-        const taxable = Math.max(0, subtotal - discountAmount);
-        const tax = taxable * TAX_RATE;
-        return { subtotal, discountAmount, tax, total: taxable + tax };
+      function clearUnverifiedTotals() {
+        document.getElementById('checkoutItems').textContent = 'Secure order details could not be loaded.';
+        ['sumSubtotal', 'sumDiscount', 'sumTax', 'sumTotal'].forEach((id) => {
+          document.getElementById(id).textContent = '—';
+        });
+        document.getElementById('sumDiscountRow').hidden = true;
+        document.getElementById('placeOrderBtn').disabled = true;
+        quote = null;
       }
 
-      function updatePlaceOrderButton() {
-        const btn = document.getElementById('placeOrderBtn');
-        const t = totals();
-        btn.textContent = activeMethod === 'paystack'
-          ? 'Continue to Paystack · ' + formatCurrency(t.total)
-          : 'Pay ' + formatCurrency(t.total);
+      function shippingDetails() {
+        return Object.fromEntries(shippingFields.map((id) => [id, document.getElementById(id).value.trim()]));
+      }
+
+      function saveShippingDetails() {
+        try { sessionStorage.setItem(SHIPPING_KEY, JSON.stringify(shippingDetails())); } catch (error) {}
+      }
+
+      function restoreShippingDetails() {
+        try {
+          const saved = JSON.parse(sessionStorage.getItem(SHIPPING_KEY) || '{}');
+          shippingFields.forEach((id) => {
+            if (saved[id]) document.getElementById(id).value = saved[id];
+          });
+        } catch (error) {}
       }
 
       function renderSummary() {
         const list = document.getElementById('checkoutItems');
-        const placeBtn = document.getElementById('placeOrderBtn');
-
         if (!cart.length) {
           list.innerHTML = '<div class="cart-empty">Your cart is empty. <a class="inline-link" href="comerence.html">Go pick something out</a>.</div>';
-          placeBtn.disabled = true;
+        } else if (!quote) {
+          list.textContent = 'Loading secure order details…';
         } else {
           list.innerHTML = cart.map((item) => `
             <div class="cart-item checkout-item">
@@ -301,233 +242,189 @@
                 <h4>${item.name}</h4>
                 <div class="meta">${item.color} · Qty ${item.quantity}</div>
               </div>
-              <div class="checkout-item-price">${formatCurrency(item.price * item.quantity)}</div>
+              <div class="checkout-item-price">${formatCurrency((item.priceMinor || Math.round(item.price * 100)) * item.quantity / 100)}</div>
             </div>
           `).join('');
-          placeBtn.disabled = false;
         }
 
-        const t = totals();
-        document.getElementById('sumSubtotal').textContent = formatCurrency(t.subtotal);
-        document.getElementById('sumDiscountRow').hidden = discount === 0;
-        document.getElementById('sumDiscount').textContent = '-' + formatCurrency(t.discountAmount);
-        document.getElementById('sumTax').textContent = formatCurrency(t.tax);
-        document.getElementById('sumTotal').textContent = formatCurrency(t.total);
-        updatePlaceOrderButton();
+        if (!quote) return;
+        document.getElementById('sumSubtotal').textContent = formatCurrency(quote.totals.subtotalMinor / 100);
+        document.getElementById('sumDiscountRow').hidden = quote.totals.discountMinor === 0;
+        document.getElementById('sumDiscount').textContent = '-' + formatCurrency(quote.totals.discountMinor / 100);
+        document.getElementById('sumTax').textContent = formatCurrency(quote.totals.taxMinor / 100);
+        document.getElementById('sumTotal').textContent = formatCurrency(quote.totals.amountMinor / 100);
       }
 
       if (user) {
         document.getElementById('contactName').value = user.name || '';
         document.getElementById('contactEmail').value = user.email || '';
       }
+      restoreShippingDetails();
 
-      document.getElementById('paystackDemoNote').hidden = Boolean(PAYSTACK_PUBLIC_KEY);
-
-      /* ---------- promo code (demo) ---------- */
-      document.getElementById('applyPromo').addEventListener('click', () => {
-        const code = document.getElementById('promoInput').value.trim().toUpperCase();
-        if (!code) return;
-        if (code === 'WELCOME10') {
-          discount = 0.1;
-          Auth.toast('Promo applied — 10% off your order.', 'success');
-        } else {
-          discount = 0;
-          Auth.toast("That code isn't valid.");
-        }
+      async function loadQuote() {
+        const promoCode = document.getElementById('promoInput').value.trim().toUpperCase();
+        const result = await Auth.authenticatedRequest('/api/payments/quote', {
+          method: 'POST',
+          body: JSON.stringify({
+            items: cart.map((item) => ({ id: item.id, color: item.color, quantity: item.quantity })),
+            promoCode
+          })
+        });
+        quote = result;
+        cart = result.items;
+        try { sessionStorage.setItem(PROMO_KEY, promoCode); } catch (error) {}
+        document.getElementById('paymentAvailability').textContent = result.paymentsAvailable
+          ? 'Secure payment provided by Paystack.'
+          : 'Online payments are not configured yet. Please contact the store.';
+        const button = document.getElementById('placeOrderBtn');
+        button.disabled = !result.paymentsAvailable || !cart.length || paymentLocked;
+        button.textContent = 'Continue to Paystack';
         renderSummary();
-      });
-
-      /* ---------- payment method tabs ---------- */
-      document.querySelectorAll('.payment-tab').forEach((tab) => {
-        tab.addEventListener('click', () => {
-          activeMethod = tab.dataset.tab;
-          document.querySelectorAll('.payment-tab').forEach((t) => {
-            t.classList.toggle('is-active', t === tab);
-            t.setAttribute('aria-selected', String(t === tab));
-          });
-          document.querySelectorAll('.payment-panel').forEach((panel) => {
-            panel.hidden = panel.dataset.panel !== activeMethod;
-          });
-          updatePlaceOrderButton();
-        });
-      });
-
-      /* ---------- card field formatting ---------- */
-      const cardNumberInput = document.getElementById('cardNumber');
-      const cardBrandEl = document.getElementById('cardBrand');
-      const expiryInput = document.getElementById('cardExpiry');
-      const cvcInput = document.getElementById('cardCvc');
-
-      function detectBrand(digits) {
-        if (/^4/.test(digits)) return 'Visa';
-        if (/^(5[1-5]|2[2-7])/.test(digits)) return 'Mastercard';
-        if (/^3[47]/.test(digits)) return 'Amex';
-        if (/^(506|507|650)/.test(digits)) return 'Verve';
-        return '';
       }
 
-      cardNumberInput.addEventListener('input', () => {
-        const digits = cardNumberInput.value.replace(/\D/g, '').slice(0, 19);
-        cardNumberInput.value = digits.replace(/(.{4})/g, '$1 ').trim();
-        cardBrandEl.textContent = detectBrand(digits);
-        setError(cardNumberInput, document.getElementById('cardNumberError'), '');
-      });
-
-      expiryInput.addEventListener('input', () => {
-        let v = expiryInput.value.replace(/\D/g, '').slice(0, 4);
-        if (v.length >= 3) v = v.slice(0, 2) + '/' + v.slice(2);
-        expiryInput.value = v;
-        setError(expiryInput, document.getElementById('cardExpiryError'), '');
-      });
-
-      cvcInput.addEventListener('input', () => {
-        cvcInput.value = cvcInput.value.replace(/\D/g, '').slice(0, 4);
-        setError(cvcInput, document.getElementById('cardCvcError'), '');
-      });
-
-      function luhnValid(digits) {
-        let sum = 0;
-        let alt = false;
-        for (let i = digits.length - 1; i >= 0; i--) {
-          let n = parseInt(digits[i], 10);
-          if (alt) { n *= 2; if (n > 9) n -= 9; }
-          sum += n;
-          alt = !alt;
+      document.getElementById('applyPromo').addEventListener('click', async () => {
+        document.getElementById('checkoutAlert').hidden = true;
+        try {
+          await loadQuote();
+          Auth.toast('Order total updated.', 'success');
+        } catch (error) {
+          showCheckoutError(error.message);
+          clearUnverifiedTotals();
         }
-        return digits.length >= 12 && digits.length <= 19 && sum % 10 === 0;
+      });
+
+      async function checkOrder(reference) {
+        let result = await Auth.authenticatedRequest('/api/orders/' + encodeURIComponent(reference));
+        if (result.order.status === 'pending' || result.order.status === 'review') {
+          result = await Auth.authenticatedRequest('/api/orders/' + encodeURIComponent(reference) + '/verify', { method: 'POST' });
+        }
+        return result.order;
       }
 
-      function validateCard() {
-        let ok = true;
-        const digits = cardNumberInput.value.replace(/\D/g, '');
-
-        if (!luhnValid(digits)) {
-          setError(cardNumberInput, document.getElementById('cardNumberError'), 'Enter a valid card number.');
-          ok = false;
-        }
-
-        const [mm, yy] = expiryInput.value.split('/');
-        const expDate = mm && yy ? new Date(2000 + parseInt(yy, 10), parseInt(mm, 10), 0) : null;
-        if (!mm || !yy || +mm < 1 || +mm > 12 || !expDate || expDate < new Date()) {
-          setError(expiryInput, document.getElementById('cardExpiryError'), 'Enter a valid expiry date.');
-          ok = false;
-        }
-
-        if (cvcInput.value.length < 3) {
-          setError(cvcInput, document.getElementById('cardCvcError'), 'Enter a valid CVC.');
-          ok = false;
-        }
-
-        const nameInput = document.getElementById('cardName');
-        if (!nameInput.value.trim()) {
-          setError(nameInput, document.getElementById('cardNameError'), 'Enter the name on the card.');
-          ok = false;
-        }
-
-        return ok;
-      }
-
-      function validateContact() {
-        let ok = true;
-        ['contactName', 'contactEmail', 'address1', 'city', 'postal'].forEach((id) => {
-          const input = document.getElementById(id);
-          const errorEl = document.getElementById(id + 'Error');
-          if (!input.value.trim()) {
-            setError(input, errorEl, 'This field is required.');
-            ok = false;
-          } else {
-            setError(input, errorEl, '');
+      async function showReturnedOrder(reference) {
+        pendingReference = reference;
+        paymentLocked = true;
+        const button = document.getElementById('placeOrderBtn');
+        button.disabled = true;
+        document.getElementById('paymentAvailability').textContent = 'Verifying your payment…';
+        try {
+          const order = await checkOrder(reference);
+          if (order.status === 'paid') {
+            document.querySelector('.checkout-shell').hidden = true;
+            document.querySelector('.checkout-topline').hidden = true;
+            document.getElementById('orderSuccess').hidden = false;
+            document.getElementById('successOrderNumber').textContent = order.reference;
+            document.getElementById('successCount').textContent = String(order.items.reduce((sum, item) => sum + item.quantity, 0));
+            document.getElementById('successTotal').textContent = formatCurrency(order.amountMinor / 100);
+            localStorage.removeItem(CART_KEY);
+            sessionStorage.removeItem(SHIPPING_KEY);
+            sessionStorage.removeItem(PROMO_KEY);
+            sessionStorage.removeItem(PAYMENT_REFERENCE_KEY);
+            sessionStorage.removeItem(PAYMENT_STATUS_KEY);
+            return;
           }
-        });
 
-        const email = document.getElementById('contactEmail');
-        if (email.value && !Auth.isValidEmail(email.value.trim())) {
-          setError(email, document.getElementById('contactEmailError'), 'Enter a valid email address.');
-          ok = false;
-        }
-        return ok;
-      }
+          if (order.status === 'review') {
+            pendingReference = '';
+            paymentLocked = true;
+            button.textContent = 'Payment requires review';
+            document.getElementById('paymentAvailability').textContent = 'Payment status: review.';
+            showCheckoutError('Your payment needs review. Contact the store before trying again.');
+            return;
+          }
 
-      /* ---------- placing the order ---------- */
-      function genOrderRef() {
-        return 'CMR-' + Math.random().toString(36).slice(2, 8).toUpperCase();
-      }
-
-      function setLoading(loading) {
-        const btn = document.getElementById('placeOrderBtn');
-        btn.disabled = loading;
-        btn.textContent = loading ? 'Processing…' : btn.textContent;
-        if (!loading) updatePlaceOrderButton();
-      }
-
-      function finalizeOrder(reference, methodLabel) {
-        const t = totals();
-        document.getElementById('checkoutForm').hidden = true;
-        document.querySelector('.checkout-topline').hidden = true;
-        const success = document.getElementById('orderSuccess');
-        success.hidden = false;
-        document.getElementById('successOrderNumber').textContent = reference;
-        document.getElementById('successTotal').textContent = formatCurrency(t.total);
-        document.getElementById('successMethod').textContent = methodLabel;
-        document.getElementById('successCount').textContent = cart.reduce((sum, item) => sum + item.quantity, 0);
-        try { localStorage.removeItem(CART_KEY); } catch (e) {}
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-      }
-
-      function payWithPaystack() {
-        if (global_hasPaystack() && PAYSTACK_PUBLIC_KEY) {
-          const t = totals();
-          const handler = PaystackPop.setup({
-            key: PAYSTACK_PUBLIC_KEY,
-            email: document.getElementById('contactEmail').value.trim(),
-            amount: Math.round(t.total * 100),
-            currency: PAYSTACK_CURRENCY,
-            ref: genOrderRef(),
-            metadata: {
-              custom_fields: [
-                { display_name: 'Customer', variable_name: 'customer', value: document.getElementById('contactName').value.trim() },
-                { display_name: 'Order Type', variable_name: 'order_type', value: 'Whisper Rose checkout' }
-              ]
-            },
-            channels: ['card', 'bank', 'ussd', 'qr', 'mobile_money'],
-            callback: function (response) {
-              finalizeOrder(response.reference, 'Paystack');
-            },
-            onClose: function () {
-              setLoading(false);
-            },
-          });
-          handler.openIframe();
-        } else {
-          Auth.toast('Add your Paystack public key to enable live payments. Demo checkout is running instead.', 'info');
-          setTimeout(() => finalizeOrder(genOrderRef(), 'Paystack (demo)'), 900);
+          pendingReference = order.status === 'pending' ? reference : '';
+          paymentLocked = false;
+          button.disabled = false;
+          button.textContent = pendingReference ? 'Check payment status' : 'Try payment again';
+          document.getElementById('paymentAvailability').textContent = 'Payment status: ' + order.status + '.';
+          if (order.status === 'failed') showCheckoutError('Payment was not completed. Check your details and try again.');
+        } catch (error) {
+          paymentLocked = false;
+          button.disabled = false;
+          button.textContent = 'Check payment status';
+          document.getElementById('paymentAvailability').textContent = 'Payment status could not be confirmed.';
+          showCheckoutError(error.message);
         }
       }
 
-      function global_hasPaystack() {
-        return typeof window.PaystackPop !== 'undefined';
-      }
-
-      document.getElementById('checkoutForm').addEventListener('submit', (event) => {
-        event.preventDefault();
-        if (!cart.length) { Auth.toast('Your cart is empty.'); return; }
-        if (!validateContact()) return;
-
-        if (activeMethod === 'card') {
-          if (!validateCard()) return;
-          setLoading(true);
-          setTimeout(() => {
-            finalizeOrder(genOrderRef(), 'Card ending in ' + cardNumberInput.value.replace(/\D/g, '').slice(-4));
-          }, 1100);
+      document.getElementById('placeOrderBtn').addEventListener('click', async () => {
+        const alert = document.getElementById('checkoutAlert');
+        alert.hidden = true;
+        if (pendingReference) {
+          await showReturnedOrder(pendingReference);
           return;
         }
 
-        setLoading(true);
-        payWithPaystack();
+        const requiredFields = ['contactName', 'contactEmail', 'phone', 'address1', 'city', 'postal'];
+        const firstMissing = requiredFields.find((id) => !document.getElementById(id).value.trim());
+        if (firstMissing) {
+          showCheckoutError('Complete your name, email, phone, address, city, and postal code to continue.');
+          document.getElementById(firstMissing).focus();
+          return;
+        }
+        const email = document.getElementById('contactEmail').value.trim();
+        if (!Auth.isValidEmail(email)) {
+          showCheckoutError('Enter a valid email address.');
+          document.getElementById('contactEmail').focus();
+          return;
+        }
+
+        const button = document.getElementById('placeOrderBtn');
+        button.disabled = true;
+        button.textContent = 'Starting secure payment…';
+        try {
+          const result = await Auth.authenticatedRequest('/api/payments/paystack/initialize', {
+            method: 'POST',
+            body: JSON.stringify({
+              fullName: document.getElementById('contactName').value.trim(),
+              phone: document.getElementById('phone').value.trim(),
+              address1: document.getElementById('address1').value.trim(),
+              address2: document.getElementById('address2').value.trim(),
+              city: document.getElementById('city').value.trim(),
+              region: document.getElementById('region').value.trim(),
+              postal: document.getElementById('postal').value.trim(),
+              country: document.getElementById('country').value,
+              items: cart.map((item) => ({ id: item.id, color: item.color, quantity: item.quantity })),
+              promoCode: document.getElementById('promoInput').value.trim().toUpperCase()
+            })
+          });
+          saveShippingDetails();
+          window.location.assign(result.authorizationUrl);
+        } catch (error) {
+          showCheckoutError(error.message);
+          button.disabled = false;
+          button.textContent = 'Continue to Paystack';
+        }
       });
 
       Auth.mountNavAccount(document.getElementById('accountSlot'));
       renderSummary();
+      try { document.getElementById('promoInput').value = sessionStorage.getItem(PROMO_KEY) || ''; } catch (error) {}
+      const returnedParams = new URLSearchParams(window.location.search);
+      const returnedReference = returnedParams.get('reference') || sessionStorage.getItem(PAYMENT_REFERENCE_KEY);
+      const returnedStatus = returnedParams.get('payment') || sessionStorage.getItem(PAYMENT_STATUS_KEY);
+      if (returnedReference) {
+        showReturnedOrder(returnedReference);
+        if (cart.length) {
+          loadQuote().catch((error) => {
+            document.getElementById('paymentAvailability').textContent = 'Secure checkout could not be loaded.';
+            showCheckoutError(error.message);
+          });
+        }
+      } else if (returnedStatus === 'failed') {
+        showCheckoutError('Paystack could not verify this payment. No order has been marked as paid.');
+        sessionStorage.removeItem(PAYMENT_STATUS_KEY);
+        if (cart.length) loadQuote().catch((error) => showCheckoutError(error.message));
+      } else if (cart.length) {
+        loadQuote().catch((error) => {
+          document.getElementById('paymentAvailability').textContent = 'Secure checkout could not be loaded.';
+          showCheckoutError(error.message);
+          clearUnverifiedTotals();
+        });
+      } else {
+        document.getElementById('paymentAvailability').textContent = 'Your cart is empty.';
+      }
     </script>
   </body>
 </html>

@@ -382,7 +382,7 @@
     <a
       class="wa-float"
       id="waFloat"
-      href="https://wa.me/25550667565?text=Hi%20Whisper%20Rose%20supplier%2C%20I%20want%20to%20ask%20about%20my%20order."
+      href="https://wa.me/233550667565?text=Hi%20Whisper%20Rose%20supplier%2C%20I%20want%20to%20ask%20about%20my%20order."
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat with our supplier on WhatsApp"
@@ -604,6 +604,53 @@
       const waFloat = document.getElementById('waFloat');
       if (waFloat) {
         waFloat.classList.add('is-visible');
+
+        let targetX = 0;
+        let targetY = 0;
+        let currentX = 0;
+        let currentY = 0;
+        let ambientPhase = 0;
+
+        const updateFloatPosition = (clientX, clientY) => {
+          const rect = waFloat.getBoundingClientRect();
+          const centerX = rect.left + rect.width / 2;
+          const centerY = rect.top + rect.height / 2;
+          const dx = clientX - centerX;
+          const dy = clientY - centerY;
+          const maxOffset = 18;
+
+          targetX = Math.max(-maxOffset, Math.min(maxOffset, dx * 0.22));
+          targetY = Math.max(-maxOffset, Math.min(0, dy * 0.22));
+        };
+
+        const animateFloat = () => {
+          ambientPhase += 0.05;
+          const driftX = Math.sin(ambientPhase) * 6;
+          const driftY = Math.cos(ambientPhase * 1.4) * 6;
+
+          currentX += (targetX + driftX - currentX) * 0.12;
+          currentY += (Math.min(0, targetY + driftY) - currentY) * 0.12;
+
+          waFloat.style.setProperty('--wa-x', `${currentX}px`);
+          waFloat.style.setProperty('--wa-y', `${currentY}px`);
+          requestAnimationFrame(animateFloat);
+        };
+
+        requestAnimationFrame(animateFloat);
+
+        window.addEventListener('pointermove', (event) => {
+          updateFloatPosition(event.clientX, event.clientY);
+        }, { passive: true });
+
+        window.addEventListener('touchmove', (event) => {
+          const touch = event.touches[0] || event.changedTouches[0];
+          if (touch) updateFloatPosition(touch.clientX, touch.clientY);
+        }, { passive: true });
+
+        window.addEventListener('pointerleave', () => {
+          targetX = 0;
+          targetY = 0;
+        });
       }
 
       Auth.mountNavAccount(document.getElementById('accountSlot'));

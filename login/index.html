@@ -7,8 +7,6 @@
     <meta name="description" content="Log in to your Whisper Rose account to track orders and manage your details." />
     <link rel="stylesheet" href="../styles.css" />
     <script src="../auth.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
     <script>
       if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
     </script>
@@ -61,18 +59,6 @@
 
           <button type="submit" class="primary-btn auth-submit" id="submitBtn">Log in</button>
         </form>
-
-        <div class="auth-divider"><span>or continue with</span></div>
-
-        <div class="social-row">
-          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
-          <button type="button" class="social-btn" id="googleBtn">
-            <span class="social-icon">G</span> Google
-          </button>
-          <button type="button" class="social-btn" id="appleBtn">
-            <span class="social-icon"></span> Apple
-          </button>
-        </div>
 
         <p class="auth-footnote">
           Don't have an account? <a href="../signup/index.html" class="inline-link">Sign up</a>
@@ -143,12 +129,19 @@
         setTimeout(() => window.location.replace(Auth.nextUrl()), 700);
       }
 
-      if (new URLSearchParams(window.location.search).get('next')) {
+      const loginParams = new URLSearchParams(window.location.search);
+      if (loginParams.get('created') === '1') {
+        showAlert('Your account was created. Please log in.', 'success');
+        try {
+          emailInput.value = sessionStorage.getItem('comerence.signupEmail') || '';
+          sessionStorage.removeItem('comerence.signupEmail');
+        } catch (error) {}
+      } else if (loginParams.get('next')) {
         showAlert('Log in to continue.', 'info');
       }
 
       if (!window.crypto || !window.crypto.subtle) {
-        showAlert('This browser can’t run secure login on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+        showAlert('This browser can’t run secure login on this page. Try a modern browser, or open the site at http://localhost:3000 instead of a file path.');
       }
 
       toggleBtn.addEventListener('click', () => {
@@ -203,7 +196,7 @@
           passwordInput.focus();
         } catch (err) {
           showAlert(err && err.message === 'crypto-unavailable'
-            ? 'Secure login needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+            ? 'Secure login needs a secure page. Open this site at http://localhost:3000 instead of a file path.'
             : 'Something went wrong. Please try again.');
         } finally {
           setLoading(false);

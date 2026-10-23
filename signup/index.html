@@ -7,11 +7,6 @@
     <meta name="description" content="Create a Whisper Rose account to check out faster, track orders, and save your details." />
     <link rel="stylesheet" href="../styles.css" />
     <script src="../auth.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
-    <script>
-      if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
-    </script>
   </head>
   <body>
     <header class="topbar">
@@ -82,18 +77,6 @@
           <button type="submit" class="primary-btn auth-submit" id="submitBtn">Create account</button>
         </form>
 
-        <div class="auth-divider"><span>or continue with</span></div>
-
-        <div class="social-row">
-          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
-          <button type="button" class="social-btn" id="googleBtn">
-            <span class="social-icon">G</span> Google
-          </button>
-          <button type="button" class="social-btn" id="appleBtn">
-            <span class="social-icon"></span> Apple
-          </button>
-        </div>
-
         <p class="auth-footnote">
           Already have an account? <a href="../login/index.html" class="inline-link">Log in</a>
         </p>
@@ -139,7 +122,7 @@
       };
 
       if (!window.crypto || !window.crypto.subtle) {
-        showAlert('This browser can’t run secure sign-up on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+        showAlert('This browser can’t run secure sign-up on this page. Try a modern browser, or open the site at http://localhost:3000 instead of a file path.');
       }
 
       const wiring = [
@@ -188,9 +171,13 @@
         submitBtn.textContent = loading ? 'Creating account…' : 'Create account';
       }
 
-      function finishSignup(user, message) {
-        Auth.toast(message + ', ' + user.name.split(' ')[0] + '!');
-        setTimeout(() => window.location.replace(Auth.nextUrl()), 800);
+      function finishSignup(user) {
+        try { sessionStorage.setItem('comerence.signupEmail', user.email); } catch (error) {}
+        const loginUrl = new URL('../login/index.html', window.location.href);
+        const next = new URLSearchParams(window.location.search).get('next');
+        if (next && /^[\w-]+\.html$/.test(next)) loginUrl.searchParams.set('next', next);
+        loginUrl.searchParams.set('created', '1');
+        window.location.replace(loginUrl.toString());
       }
 
       form.addEventListener('submit', async (event) => {
@@ -219,7 +206,7 @@
           });
 
           if (result.ok) {
-            finishSignup(result.user, 'Account created');
+            finishSignup(result.user);
             return;
           }
 
@@ -232,7 +219,7 @@
           showAlert(result.message || 'Something went wrong. Please try again.');
         } catch (err) {
           showAlert(err && err.message === 'crypto-unavailable'
-            ? 'Secure sign-up needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+            ? 'Secure sign-up needs a secure page. Open this site at http://localhost:3000 instead of a file path.'
             : 'Something went wrong. Please try again.');
         } finally {
           setLoading(false);

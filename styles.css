@@ -123,9 +123,12 @@ input {
 }
 
 .wa-float {
+  --wa-x: 0px;
+  --wa-y: 0px;
+  --wa-bottom-offset: 88px;
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  bottom: var(--wa-bottom-offset);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -134,13 +137,15 @@ input {
   border-radius: 999px;
   background: linear-gradient(135deg, #25d366, #0ea54a);
   color: white;
-  box-shadow: 0 16px 30px rgba(37, 211, 102, 0.35);
+  box-shadow: 0 16px 30px rgba(37, 211, 102, 0.35), 0 0 0 10px rgba(37, 211, 102, 0.12);
   font-size: 1.05rem;
   z-index: 120;
   opacity: 1;
   visibility: visible;
-  transform: none;
-  transition: transform 0.2s ease;
+  transform: translate3d(var(--wa-x), var(--wa-y), 0);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  will-change: transform;
+  animation: waPulse 2.4s ease-in-out infinite;
 }
 
 .wa-float .wa-icon {
@@ -152,6 +157,7 @@ input {
   background: rgba(255, 255, 255, 0.18);
   font-size: 1.35rem;
   flex-shrink: 0;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
 }
 
 .wa-float .wa-label {
@@ -161,7 +167,16 @@ input {
 }
 
 .wa-float:hover {
-  transform: translateY(-2px);
+  box-shadow: 0 18px 34px rgba(37, 211, 102, 0.4), 0 0 0 12px rgba(37, 211, 102, 0.14);
+}
+
+@keyframes waPulse {
+  0%, 100% {
+    box-shadow: 0 16px 30px rgba(37, 211, 102, 0.35), 0 0 0 0 rgba(37, 211, 102, 0.18);
+  }
+  50% {
+    box-shadow: 0 18px 36px rgba(37, 211, 102, 0.42), 0 0 0 12px rgba(37, 211, 102, 0.08);
+  }
 }
 
 .cart-badge {
@@ -1470,52 +1485,6 @@ footer {
   font-size: 1rem;
 }
 
-.auth-divider {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 26px 0;
-  color: var(--muted);
-  font-size: 0.82rem;
-}
-
-.auth-divider::before,
-.auth-divider::after {
-  content: "";
-  flex: 1;
-  height: 1px;
-  background: var(--border);
-}
-
-.social-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.social-btn {
-  height: 48px;
-  border-radius: 12px;
-  border: 1px solid var(--border);
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
-}
-
-.social-btn:hover {
-  transform: translateY(-1px);
-  background: var(--panel-2);
-}
-
-.social-icon {
-  font-weight: 800;
-}
-
 .auth-footnote {
   text-align: center;
   margin: 26px 0 0;
@@ -2101,16 +2070,4 @@ footer {
 .success-actions {
   display: flex;
   justify-content: center;
-}
-/* ---------- Real "Sign in with Google" button mount ---------- */
-.google-btn-mount {
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-
-.google-btn-mount iframe {
-  max-width: 100%;
 }

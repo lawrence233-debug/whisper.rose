@@ -1,11 +1,4 @@
-/* Whisper Rose auth (client-side demo)
- *
- * There is no server in this project, so accounts live in the browser's
- * localStorage. Passwords are never stored in plain text: each one is salted and
- * run through PBKDF2 (SHA-256, 100k iterations) using the Web Crypto API.
- * That makes the flow behave like a real login, but it is NOT a substitute for a
- * backend. Anyone with access to this browser profile can read the stored data.
- *
+/* Whisper Rose account and session client.
  * Exposes a single global: window.Auth
  */
 (function (global) {
@@ -20,6 +13,39 @@
   var SESSION_MS = 12 * 60 * 60 * 1000;
   var PBKDF2_ITERATIONS = 100000;
   var DUMMY_SALT = 'AAAAAAAAAAAAAAAAAAAAAA==';
+
+  function usesDatabase() {
+    return global.location.protocol !== 'file:';
+  }
+
+  async function apiRequest(path, options) {
+    var response = await fetch('/api/auth/' + path, Object.assign({
+      headers: { 'Content-Type': 'application/json' }
+    }, options || {}));
+    var data = response.status === 204 ? {} : await response.json();
+    if (!response.ok && !data.message) throw new Error('Account service unavailable. Please try again.');
+    return data;
+  }
+
+  async function authenticatedRequest(path, options) {
+    var session = read(sessionStorage, SESSION_KEY, null) || read(localStorage, SESSION_KEY, null);
+    if (!session || !session.token || !currentUser()) throw new Error('Log in to continue.');
+    var requestOptions = options || {};
+    var headers = Object.assign({ 'Content-Type': 'application/json' }, requestOptions.headers || {}, {
+      Authorization: 'Bearer ' + session.token
+    });
+    var response = await fetch(path, Object.assign({}, requestOptions, { headers: headers }));
+    var data = {};
+    if (response.status !== 204) {
+      try {
+        data = await response.json();
+      } catch (error) {
+        throw new Error('The secure service returned an invalid response. Open this page through the running app and try again.');
+      }
+    }
+    if (!response.ok) throw new Error(data.message || 'The request could not be completed.');
+    return data;
+  }
 
   /* ---------- storage helpers ---------- */
 
@@ -98,103 +124,12 @@
     return diff === 0;
   }
 
-  /* ---------- verifying Google / Apple ID tokens (real crypto, no backend) ----------
-   *
-   * Google and Apple both hand back a signed JWT ("ID token") after the person signs
-   * in. This site has no server, so instead of sending that token to a backend to
-   * verify (the normal, more robust approach), we verify its RS256 signature right
-   * here in the browser against the provider's own public keys, and check that it
-   * hasn't expired and was actually issued for THIS app. That stops a page from
-   * forging a token, but it's still a client-only trust model: someone with access to
-   * this browser's devtools can still write directly to localStorage. For anything
-   * where that matters (real payments, account recovery, admin access) put a real
-   * backend in front of this before launch.
-   */
-
-  var jwksCache = {};
-
-  async function fetchJwks(url) {
-    if (jwksCache[url]) return jwksCache[url];
-    var res = await fetch(url);
-    if (!res.ok) throw new Error('jwks-fetch-failed');
-    var data = await res.json();
-    jwksCache[url] = data;
-    return data;
-  }
-
-  function base64UrlToBytes(b64url) {
-    var b64 = String(b64url).replace(/-/g, '+').replace(/_/g, '/');
-    while (b64.length % 4) b64 += '=';
-    var bin = atob(b64);
-    var bytes = new Uint8Array(bin.length);
-    for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
-    return bytes;
-  }
-
-  function decodeJwtPart(part) {
-    return JSON.parse(new TextDecoder().decode(base64UrlToBytes(part)));
-  }
-
-  async function verifyIdToken(idToken, options) {
-    var parts = String(idToken || '').split('.');
-    if (parts.length !== 3) throw new Error('malformed-token');
-
-    var header = decodeJwtPart(parts[0]);
-    var payload = decodeJwtPart(parts[1]);
-    var now = Math.floor(Date.now() / 1000);
-
-    if (!payload.exp || payload.exp < now) throw new Error('token-expired');
-
-    var issuers = Array.isArray(options.issuer) ? options.issuer : [options.issuer];
-    if (issuers.indexOf(payload.iss) === -1) throw new Error('bad-issuer');
-
-    var aud = Array.isArray(payload.aud) ? payload.aud : [payload.aud];
-    if (aud.indexOf(options.audience) === -1) throw new Error('bad-audience');
-
-    var jwks = await fetchJwks(options.jwksUrl);
-    var jwk = (jwks.keys || []).find(function (k) { return k.kid === header.kid; });
-    if (!jwk) throw new Error('unknown-signing-key');
-
-    var key = await global.crypto.subtle.importKey(
-      'jwk',
-      jwk,
-      { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
-      false,
-      ['verify']
-    );
-    var signedData = new TextEncoder().encode(parts[0] + '.' + parts[1]);
-    var signature = base64UrlToBytes(parts[2]);
-    var valid = await global.crypto.subtle.verify({ name: 'RSASSA-PKCS1-v1_5' }, key, signature, signedData);
-    if (!valid) throw new Error('bad-signature');
-
-    return payload;
-  }
-
-  // Google's iss claim can be either form; both are valid. See Google's OpenID config
-  // at https://accounts.google.com/.well-known/openid-configuration
-  function verifyGoogleIdToken(idToken, clientId) {
-    return verifyIdToken(idToken, {
-      jwksUrl: 'https://www.googleapis.com/oauth2/v3/certs',
-      issuer: ['https://accounts.google.com', 'accounts.google.com'],
-      audience: clientId,
-    });
-  }
-
-  // Apple's OpenID config: https://appleid.apple.com/.well-known/openid-configuration
-  function verifyAppleIdToken(idToken, clientId) {
-    return verifyIdToken(idToken, {
-      jwksUrl: 'https://appleid.apple.com/auth/keys',
-      issuer: 'https://appleid.apple.com',
-      audience: clientId,
-    });
-  }
-
   /* ---------- validation ---------- */
 
   // Accounts, sessions and the cart all live in this origin's localStorage, so they
   // only follow you between pages loaded from the exact same address. Useful for
   // showing people why "my saved login isn't there anymore" happens (file:// vs
-  // http://localhost:8080, http vs https, or a different port, are all separate stores).
+  // http://localhost:3000, http vs https, or a different port, are all separate stores).
   function storageOrigin() {
     return global.location.protocol === 'file:'
       ? global.location.href.split('?')[0].split('#')[0]
@@ -261,13 +196,14 @@
     return { id: user.id, name: user.name, email: user.email, provider: user.provider };
   }
 
-  function startSession(user, remember) {
+  function startSession(user, remember, token, expires) {
     var session = {
       uid: user.id,
-      token: randomId(),
+      token: token || randomId(),
       remember: !!remember,
-      expires: Date.now() + (remember ? REMEMBER_MS : SESSION_MS)
+      expires: expires || Date.now() + (remember ? REMEMBER_MS : SESSION_MS)
     };
+    if (token) session.user = publicUser(user);
     endSession();
     write(remember ? localStorage : sessionStorage, SESSION_KEY, session);
     return session;
@@ -285,6 +221,7 @@
       endSession();
       return null;
     }
+    if (usesDatabase()) return session.token && session.user ? session.user : null;
     var user = getUsers().find(function (u) { return u.id === session.uid; });
     if (!user) {
       endSession();
@@ -298,6 +235,14 @@
   async function signUp(input) {
     var name = String(input.name || '').trim();
     var email = normalizeEmail(input.email);
+    if (usesDatabase()) {
+      var created = await apiRequest('signup', {
+        method: 'POST',
+        body: JSON.stringify({ name: name, email: email, password: input.password })
+      });
+      if (created.ok) logOut();
+      return created;
+    }
     var users = getUsers();
 
     if (users.some(function (u) { return u.email === email; })) {
@@ -318,12 +263,21 @@
     if (!saveUsers(users)) {
       return { ok: false, code: 'storage', message: 'Your browser blocked saving the account. Check that storage is enabled.' };
     }
-    startSession(user, true);
+    logOut();
     return { ok: true, user: publicUser(user) };
   }
 
   async function logIn(input) {
     var email = normalizeEmail(input.email);
+
+    if (usesDatabase()) {
+      var result = await apiRequest('login', {
+        method: 'POST',
+        body: JSON.stringify({ email: email, password: input.password, remember: input.remember })
+      });
+      if (result.ok) startSession(result.user, input.remember, result.token, result.expiresAt);
+      return result;
+    }
 
     var wait = lockRemaining(email);
     if (wait > 0) {
@@ -350,7 +304,7 @@
       // existence) — it only flags that there are zero accounts stored under the
       // current origin at all, which is the #1 cause of "my saved login stopped
       // working": localStorage is scoped per-origin, so file:// and
-      // http://localhost:8080 (or two different ports) each have their own, empty store.
+      // http://localhost:3000 (or two different ports) each have their own, empty store.
       return {
         ok: false,
         code: 'invalid',
@@ -365,6 +319,15 @@
   }
 
   function logOut() {
+    if (usesDatabase()) {
+      var session = read(sessionStorage, SESSION_KEY, null) || read(localStorage, SESSION_KEY, null);
+      if (session && session.token) {
+        fetch('/api/auth/session', {
+          method: 'DELETE',
+          headers: { Authorization: 'Bearer ' + session.token }
+        }).catch(function () {});
+      }
+    }
     endSession();
   }
 
@@ -374,6 +337,9 @@
   }
 
   async function resetPassword(email, newPassword) {
+    if (usesDatabase()) {
+      return { ok: false, message: 'Password reset is unavailable until email verification is configured. Please contact support.' };
+    }
     email = normalizeEmail(email);
     var users = getUsers();
     var user = users.find(function (u) { return u.email === email; });
@@ -384,60 +350,6 @@
     saveUsers(users);
     clearFailures(email);
     return { ok: true };
-  }
-
-  function continueWithProvider(provider, input) {
-    var email = normalizeEmail(input.email);
-    var users = getUsers();
-    var user = users.find(function (u) { return u.email === email; });
-    var isNew = false;
-    if (!user) {
-      user = {
-        id: randomId(),
-        name: String(input.name || '').trim() || email.split('@')[0],
-        email: email,
-        provider: provider.toLowerCase(),
-        createdAt: Date.now()
-      };
-      users.push(user);
-      saveUsers(users);
-      isNew = true;
-    }
-    startSession(user, true);
-    return { ok: true, user: publicUser(user), isNew: isNew };
-  }
-
-  // Verifies a real Google or Apple ID token (see the verify* helpers above) and
-  // signs the person in, creating an account on first sign-in. This is what the
-  // "Continue with Google / Apple" buttons call once real credentials are configured;
-  // until then the pages fall back to the socialSignIn() demo below.
-  async function federatedSignIn(provider, params) {
-    var key = String(provider || '').toLowerCase();
-    try {
-      var payload;
-      if (key === 'google') {
-        payload = await verifyGoogleIdToken(params.idToken, params.clientId);
-      } else if (key === 'apple') {
-        payload = await verifyAppleIdToken(params.idToken, params.clientId);
-      } else {
-        return { ok: false, message: 'Unsupported sign-in provider.' };
-      }
-
-      var email = normalizeEmail(payload.email);
-      if (!email) {
-        return { ok: false, message: 'That account has no email address to sign in with.' };
-      }
-
-      var name = (params.fallbackName && String(params.fallbackName).trim()) ||
-        (payload.name ? String(payload.name).trim() : '');
-      return continueWithProvider(key, { name: name, email: email });
-    } catch (err) {
-      return {
-        ok: false,
-        message: 'We couldn\u2019t verify that ' + provider + ' sign-in. Please try again.',
-        error: err && err.message
-      };
-    }
   }
 
   /* ---------- navigation helpers ---------- */
@@ -579,26 +491,6 @@
     });
   }
 
-  // Simulated "Continue with Google / Apple". No request is made to either provider.
-  async function socialSignIn(provider) {
-    var values = await modal({
-      title: 'Continue with ' + provider,
-      intro: 'Demo storefront: nothing is sent to ' + provider + '. Enter the account you want to use.',
-      submitLabel: 'Continue',
-      fields: [
-        { name: 'name', label: 'Name', placeholder: 'Jordan Taylor', autocomplete: 'name' },
-        { name: 'email', label: 'Email address', type: 'email', placeholder: 'you@example.com', autocomplete: 'email' }
-      ],
-      onSubmit: function (v) {
-        if (!isValidEmail(normalizeEmail(v.email))) {
-          return { field: 'email', message: 'Enter a valid email address.' };
-        }
-      }
-    });
-    if (!values) return null;
-    return continueWithProvider(provider, values);
-  }
-
   /* ---------- UI: account menu in the storefront header ---------- */
 
   function mountNavAccount(slot) {
@@ -670,17 +562,17 @@
     logOut: logOut,
     accountExists: accountExists,
     resetPassword: resetPassword,
-    socialSignIn: socialSignIn,
-    federatedSignIn: federatedSignIn,
     requireAuth: requireAuth,
     nextUrl: nextUrl,
     onChange: onChange,
     storageOrigin: storageOrigin,
+    usesDatabase: usesDatabase,
     normalizeEmail: normalizeEmail,
     isValidEmail: isValidEmail,
     validatePassword: validatePassword,
     passwordStrength: passwordStrength,
     modal: modal,
+    authenticatedRequest: authenticatedRequest,
     toast: toast,
     mountNavAccount: mountNavAccount
   };

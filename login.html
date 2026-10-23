@@ -7,10 +7,6 @@
     <meta name="description" content="Log in to your Whisper Rose account to track orders and manage your details." />
     <link rel="stylesheet" href="styles.css" />
     <script src="auth.js"></script>
-    <!-- Real federated sign-in SDKs. Both are safe to load even before you've set up
-         credentials — the buttons below fall back to a demo flow until then. -->
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
     <script>
       // Already signed in? Skip the form.
       if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
@@ -64,18 +60,6 @@
 
           <button type="submit" class="primary-btn auth-submit" id="submitBtn">Log in</button>
         </form>
-
-        <div class="auth-divider"><span>or continue with</span></div>
-
-        <div class="social-row">
-          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
-          <button type="button" class="social-btn" id="googleBtn">
-            <span class="social-icon">G</span> Google
-          </button>
-          <button type="button" class="social-btn" id="appleBtn">
-            <span class="social-icon"></span> Apple
-          </button>
-        </div>
 
         <p class="auth-footnote">
           Don't have an account? <a href="signup.html" class="inline-link">Sign up</a>
@@ -146,15 +130,22 @@
         setTimeout(() => window.location.replace(Auth.nextUrl()), 700);
       }
 
-      // Tell people why they were sent here (e.g. from checkout).
-      if (new URLSearchParams(window.location.search).get('next')) {
+      const loginParams = new URLSearchParams(window.location.search);
+      if (loginParams.get('created') === '1') {
+        showAlert('Your account was created. Please log in.', 'success');
+        try {
+          emailInput.value = sessionStorage.getItem('comerence.signupEmail') || '';
+          sessionStorage.removeItem('comerence.signupEmail');
+        } catch (error) {}
+      } else if (loginParams.get('next')) {
+        // Tell people why they were sent here (e.g. from checkout).
         showAlert('Log in to continue.', 'info');
       }
 
       // Warn up front if this page can't do secure crypto at all (very old browser,
       // or a context the browser doesn't trust), rather than only failing on submit.
       if (!window.crypto || !window.crypto.subtle) {
-        showAlert('This browser can\u2019t run secure login on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+        showAlert('This browser can\u2019t run secure login on this page. Try a modern browser, or open the site at http://localhost:3000 instead of a file path.');
       }
 
       toggleBtn.addEventListener('click', () => {
@@ -215,7 +206,7 @@
         } catch (err) {
           showAlert(
             err && err.message === 'crypto-unavailable'
-              ? 'Secure login needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+              ? 'Secure login needs a secure page. Open this site at http://localhost:3000 instead of a file path.'
               : 'Something went wrong. Please try again.'
           );
         }
@@ -224,6 +215,10 @@
 
       document.getElementById('forgotLink').addEventListener('click', async (event) => {
         event.preventDefault();
+        if (Auth.usesDatabase()) {
+          showAlert('Password reset is unavailable until email verification is configured. Please contact support.');
+          return;
+        }
 
         const step1 = await Auth.modal({
           title: 'Reset your password',
@@ -265,82 +260,6 @@
         showAlert('Password updated. Log in with your new password.', 'success');
       });
 
-      /* ---------- Federated sign-in (Google / Apple) ----------
-       *
-       * These call the REAL Google Identity Services and Sign in with Apple JS SDKs.
-       * Both need one-time setup in each provider's developer console before they'll
-       * do anything but fall back to a local demo flow:
-       *
-       * GOOGLE — https://console.cloud.google.com/apis/credentials
-       *   1. Create an OAuth client ID of type "Web application".
-       *   2. Add this site's exact origin(s) under "Authorized JavaScript origins"
-       *      (e.g. https://your-domain.com, and http://localhost:8080 for local dev).
-       *   3. Paste the client ID below as GOOGLE_CLIENT_ID.
-       *
-       * APPLE — https://developer.apple.com/account/resources/identifiers/list/serviceId
-       *   (requires a paid Apple Developer account; Apple will NOT work over
-       *   http://localhost or file:// — only a real, verified https:// domain)
-       *   1. Create a Services ID and enable "Sign in with Apple" on it.
-       *   2. Configure its Web Authentication with your exact domain and the exact
-       *      return URL(s) you'll redirect to.
-       *   3. Paste the Services ID below as APPLE_CLIENT_ID, and set
-       *      APPLE_REDIRECT_URI to the exact return URL you registered.
-       */
-      const GOOGLE_CLIENT_ID = ''; // e.g. '1234567890-abc123.apps.googleusercontent.com'
-      const APPLE_CLIENT_ID = ''; // e.g. 'com.comerence.web'
-      const APPLE_REDIRECT_URI = 'https://your-domain.com/login.html';
-
-      async function runDemoSocial(provider) {
-        Auth.toast(provider + ' isn\u2019t configured yet, so this is using the local demo flow. See the comment above for how to enable the real thing.', 'info');
-        const result = await Auth.socialSignIn(provider);
-        if (result && result.ok) finishLogin(result.user, result.isNew ? 'Account created' : 'Welcome back');
-      }
-
-      async function handleGoogleCredential(response) {
-        const result = await Auth.federatedSignIn('google', {
-          idToken: response.credential,
-          clientId: GOOGLE_CLIENT_ID,
-        });
-        if (result.ok) finishLogin(result.user, result.isNew ? 'Account created' : 'Welcome back');
-        else showAlert(result.message);
-      }
-
-      document.getElementById('appleBtn').addEventListener('click', async () => {
-        if (!APPLE_CLIENT_ID || !window.AppleID) { runDemoSocial('Apple'); return; }
-        try {
-          AppleID.auth.init({
-            clientId: APPLE_CLIENT_ID,
-            scope: 'name email',
-            redirectURI: APPLE_REDIRECT_URI,
-            usePopup: true,
-          });
-          const response = await AppleID.auth.signIn();
-          const idToken = response.authorization && response.authorization.id_token;
-          const fallbackName = response.user && response.user.name
-            ? [response.user.name.firstName, response.user.name.lastName].filter(Boolean).join(' ')
-            : '';
-          const result = await Auth.federatedSignIn('apple', { idToken, clientId: APPLE_CLIENT_ID, fallbackName });
-          if (result.ok) finishLogin(result.user, result.isNew ? 'Account created' : 'Welcome back');
-          else showAlert(result.message);
-        } catch (err) {
-          if (err && err.error === 'popup_closed_by_user') return;
-          showAlert('Apple sign-in failed. Please try again.');
-        }
-      });
-
-      // Google's button must be rendered by Google's own script once it has loaded,
-      // so wait for window 'load' rather than assuming it's ready immediately.
-      window.addEventListener('load', () => {
-        if (GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.id) {
-          google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
-          document.getElementById('googleBtn').hidden = true;
-          const mount = document.getElementById('googleBtnMount');
-          mount.hidden = false;
-          google.accounts.id.renderButton(mount, { theme: 'outline', size: 'large', shape: 'pill', width: 280 });
-        } else {
-          document.getElementById('googleBtn').addEventListener('click', () => runDemoSocial('Google'));
-        }
-      });
     </script>
   </body>
 </html>

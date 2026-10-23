@@ -1,0 +1,17 @@
+{
+  "name": "whisper-rose-storefront",
+  "version": "1.0.0",
+  "private": true,
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "express": "^4.21.2",
+    "express-rate-limit": "^8.7.1",
+    "pg": "^8.13.1"
+  }
+}

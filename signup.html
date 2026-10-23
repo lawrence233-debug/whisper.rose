@@ -7,12 +7,6 @@
     <meta name="description" content="Create a Whisper Rose account to check out faster, track orders, and save your details." />
     <link rel="stylesheet" href="styles.css" />
     <script src="auth.js"></script>
-    <script src="https://accounts.google.com/gsi/client" async></script>
-    <script src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js" async></script>
-    <script>
-      // Already signed in? Skip the form.
-      if (Auth.currentUser()) window.location.replace(Auth.nextUrl());
-    </script>
   </head>
   <body>
     <header class="topbar">
@@ -83,18 +77,6 @@
           <button type="submit" class="primary-btn auth-submit" id="submitBtn">Create account</button>
         </form>
 
-        <div class="auth-divider"><span>or continue with</span></div>
-
-        <div class="social-row">
-          <div id="googleBtnMount" class="google-btn-mount" hidden></div>
-          <button type="button" class="social-btn" id="googleBtn">
-            <span class="social-icon">G</span> Google
-          </button>
-          <button type="button" class="social-btn" id="appleBtn">
-            <span class="social-icon"></span> Apple
-          </button>
-        </div>
-
         <p class="auth-footnote">
           Already have an account? <a href="login.html" class="inline-link">Log in</a>
         </p>
@@ -144,7 +126,7 @@
       // Warn up front if this page can't do secure crypto at all, rather than only
       // failing once someone has filled in the whole form and hit submit.
       if (!window.crypto || !window.crypto.subtle) {
-        showAlert('This browser can\u2019t run secure sign-up on this page. Try a modern browser, or open the site at http://localhost:8080 instead of a file path.');
+        showAlert('This browser can\u2019t run secure sign-up on this page. Try a modern browser, or open the site at http://localhost:3000 instead of a file path.');
       }
 
       const wiring = [
@@ -194,9 +176,13 @@
         submitBtn.textContent = loading ? 'Creating account…' : 'Create account';
       }
 
-      function finishSignup(user, message) {
-        Auth.toast(message + ', ' + user.name.split(' ')[0] + '!');
-        setTimeout(() => window.location.replace(Auth.nextUrl()), 800);
+      function finishSignup(user) {
+        try { sessionStorage.setItem('comerence.signupEmail', user.email); } catch (error) {}
+        const loginUrl = new URL('login.html', window.location.href);
+        const next = new URLSearchParams(window.location.search).get('next');
+        if (next && /^[\w-]+\.html$/.test(next)) loginUrl.searchParams.set('next', next);
+        loginUrl.searchParams.set('created', '1');
+        window.location.replace(loginUrl.toString());
       }
 
       form.addEventListener('submit', async (event) => {
@@ -225,7 +211,7 @@
           });
 
           if (result.ok) {
-            finishSignup(result.user, 'Welcome to Whisper Rose');
+            finishSignup(result.user);
             return;
           }
 
@@ -239,74 +225,13 @@
         } catch (err) {
           showAlert(
             err && err.message === 'crypto-unavailable'
-              ? 'Secure sign-up needs a secure page. Open this site at http://localhost:8080 instead of a file path.'
+              ? 'Secure sign-up needs a secure page. Open this site at http://localhost:3000 instead of a file path.'
               : 'Something went wrong. Please try again.'
           );
         }
         setLoading(false);
       });
 
-      /* ---------- Federated sign-in (Google / Apple) ----------
-       * See the matching comment in login.html for full setup steps. In short:
-       * GOOGLE — https://console.cloud.google.com/apis/credentials (Web application
-       *   OAuth client, add this origin under Authorized JavaScript origins).
-       * APPLE — https://developer.apple.com/account/resources/identifiers/list/serviceId
-       *   (paid developer account required; only works on a real https:// domain,
-       *   never http://localhost or file://).
-       */
-      const GOOGLE_CLIENT_ID = ''; // e.g. '1234567890-abc123.apps.googleusercontent.com'
-      const APPLE_CLIENT_ID = ''; // e.g. 'com.comerence.web'
-      const APPLE_REDIRECT_URI = 'https://your-domain.com/signup.html';
-
-      async function runDemoSocial(provider) {
-        showAlert(provider + ' isn\u2019t configured yet, so this is using the local demo flow. See the comment above for how to enable the real thing.');
-        const result = await Auth.socialSignIn(provider);
-        if (result && result.ok) finishSignup(result.user, result.isNew ? 'Account created' : 'Welcome back');
-      }
-
-      async function handleGoogleCredential(response) {
-        const result = await Auth.federatedSignIn('google', {
-          idToken: response.credential,
-          clientId: GOOGLE_CLIENT_ID,
-        });
-        if (result.ok) finishSignup(result.user, result.isNew ? 'Account created' : 'Welcome back');
-        else showAlert(result.message);
-      }
-
-      document.getElementById('appleBtn').addEventListener('click', async () => {
-        if (!APPLE_CLIENT_ID || !window.AppleID) { runDemoSocial('Apple'); return; }
-        try {
-          AppleID.auth.init({
-            clientId: APPLE_CLIENT_ID,
-            scope: 'name email',
-            redirectURI: APPLE_REDIRECT_URI,
-            usePopup: true,
-          });
-          const response = await AppleID.auth.signIn();
-          const idToken = response.authorization && response.authorization.id_token;
-          const fallbackName = response.user && response.user.name
-            ? [response.user.name.firstName, response.user.name.lastName].filter(Boolean).join(' ')
-            : '';
-          const result = await Auth.federatedSignIn('apple', { idToken, clientId: APPLE_CLIENT_ID, fallbackName });
-          if (result.ok) finishSignup(result.user, result.isNew ? 'Account created' : 'Welcome back');
-          else showAlert(result.message);
-        } catch (err) {
-          if (err && err.error === 'popup_closed_by_user') return;
-          showAlert('Apple sign-in failed. Please try again.');
-        }
-      });
-
-      window.addEventListener('load', () => {
-        if (GOOGLE_CLIENT_ID && window.google && google.accounts && google.accounts.id) {
-          google.accounts.id.initialize({ client_id: GOOGLE_CLIENT_ID, callback: handleGoogleCredential });
-          document.getElementById('googleBtn').hidden = true;
-          const mount = document.getElementById('googleBtnMount');
-          mount.hidden = false;
-          google.accounts.id.renderButton(mount, { theme: 'outline', size: 'large', shape: 'pill', width: 280 });
-        } else {
-          document.getElementById('googleBtn').addEventListener('click', () => runDemoSocial('Google'));
-        }
-      });
     </script>
   </body>
 </html>
