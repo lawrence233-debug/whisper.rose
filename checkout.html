@@ -129,10 +129,6 @@
               <span>Shipping</span>
               <strong>Free</strong>
             </div>
-            <div class="summary-row">
-              <span>Estimated tax</span>
-              <strong id="sumTax">—</strong>
-            </div>
             <div class="summary-row summary-total">
               <span>Total</span>
               <strong id="sumTotal">—</strong>
@@ -203,7 +199,7 @@
 
       function clearUnverifiedTotals() {
         document.getElementById('checkoutItems').textContent = 'Secure order details could not be loaded.';
-        ['sumSubtotal', 'sumDiscount', 'sumTax', 'sumTotal'].forEach((id) => {
+        ['sumSubtotal', 'sumDiscount', 'sumTotal'].forEach((id) => {
           document.getElementById(id).textContent = '—';
         });
         document.getElementById('sumDiscountRow').hidden = true;
@@ -251,7 +247,6 @@
         document.getElementById('sumSubtotal').textContent = formatCurrency(quote.totals.subtotalMinor / 100);
         document.getElementById('sumDiscountRow').hidden = quote.totals.discountMinor === 0;
         document.getElementById('sumDiscount').textContent = '-' + formatCurrency(quote.totals.discountMinor / 100);
-        document.getElementById('sumTax').textContent = formatCurrency(quote.totals.taxMinor / 100);
         document.getElementById('sumTotal').textContent = formatCurrency(quote.totals.amountMinor / 100);
       }
 

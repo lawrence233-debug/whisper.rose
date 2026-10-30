@@ -9,7 +9,7 @@ test('checkout items use server catalog data instead of client prices', () => {
   const [item] = checkoutItems([{ id: 1, color: 'Ruby Red', quantity: 2, price: 0, name: 'Forged item' }]);
 
   assert.equal(item.name, 'Bloom Rose Suction Massager');
-  assert.equal(item.priceMinor, 15000);
+  assert.equal(item.priceMinor, 1000);
   assert.equal(item.quantity, 2);
 
   const products = checkoutItems([
@@ -31,12 +31,12 @@ test('checkout rejects invalid colors and quantities', () => {
   assert.equal(checkoutItems([{ id: 1, color: 'Ruby Red', quantity: 51 }]), null);
 });
 
-test('order totals use GHS minor units and match the 8 percent tax rate', () => {
+test('order totals use GHS minor units without estimated tax', () => {
   assert.deepEqual(orderTotals(checkoutItems([{ id: 1, color: 'Ruby Red', quantity: 1 }]), ''), {
-    subtotalMinor: 15000,
+    subtotalMinor: 1000,
     discountMinor: 0,
-    taxMinor: 1200,
-    amountMinor: 16200,
+    taxMinor: 0,
+    amountMinor: 1000,
     currency: 'GHS'
   });
 });
@@ -44,10 +44,10 @@ test('order totals use GHS minor units and match the 8 percent tax rate', () => 
 test('WELCOME10 discount and promo validation are calculated on the server', () => {
   const items = checkoutItems([{ id: 1, color: 'Blush Pink', quantity: 2 }]);
   assert.deepEqual(orderTotals(items, 'WELCOME10'), {
-    subtotalMinor: 30000,
-    discountMinor: 3000,
-    taxMinor: 2160,
-    amountMinor: 29160,
+    subtotalMinor: 2000,
+    discountMinor: 200,
+    taxMinor: 0,
+    amountMinor: 1800,
     currency: 'GHS'
   });
   assert.equal(validPromoCode('WELCOME10'), true);

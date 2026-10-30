@@ -124,7 +124,7 @@ const PRODUCTS = new Map([
   [1, {
     id: 1,
     name: 'Bloom Rose Suction Massager',
-    priceMinor: 15000,
+    priceMinor: 1000,
     image: 'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (1).jpeg',
     images: [
       'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (1).jpeg',
@@ -199,9 +199,9 @@ function checkoutItems(input) {
 function orderTotals(items, promoCode) {
   const subtotalMinor = items.reduce((sum, item) => sum + item.priceMinor * item.quantity, 0);
   const discountMinor = promoCode === 'WELCOME10' ? Math.round(subtotalMinor * 0.1) : 0;
-  const taxableMinor = subtotalMinor - discountMinor;
-  const taxMinor = Math.round(taxableMinor * 0.08);
-  return { subtotalMinor, discountMinor, taxMinor, amountMinor: taxableMinor + taxMinor, currency: 'GHS' };
+  const amountMinor = subtotalMinor - discountMinor;
+  const taxMinor = 0;
+  return { subtotalMinor, discountMinor, taxMinor, amountMinor, currency: 'GHS' };
 }
 
 function validPromoCode(value) {
