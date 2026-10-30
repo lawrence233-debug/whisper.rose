@@ -124,7 +124,7 @@ const PRODUCTS = new Map([
   [1, {
     id: 1,
     name: 'Bloom Rose Suction Massager',
-    priceMinor: 3900,
+    priceMinor: 15000,
     image: 'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (1).jpeg',
     images: [
       'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (1).jpeg',
@@ -141,7 +141,7 @@ const PRODUCTS = new Map([
   [2, {
     id: 2,
     name: 'Pulse Wand Massager',
-    priceMinor: 3900,
+    priceMinor: 20000,
     image: 'pics/WhatsApp Image 2026-10-26 at 4.09.20 AM (1).jpeg',
     images: [
       'pics/WhatsApp Image 2026-10-26 at 4.09.20 AM (1).jpeg',
@@ -156,7 +156,7 @@ const PRODUCTS = new Map([
   [3, {
     id: 3,
     name: 'Duo Dual-Stimulation Massager',
-    priceMinor: 3900,
+    priceMinor: 25000,
     image: 'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM (1).jpeg',
     images: [
       'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM (1).jpeg',
