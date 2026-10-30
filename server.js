@@ -120,13 +120,55 @@ async function paystackRequest(endpoint, options = {}) {
   return result.data;
 }
 
-const PRODUCT = {
-  id: 1,
-  name: 'Bloom Rose Massager',
-  priceMinor: 3900,
-  image: 'https://images.unsplash.com/photo-1519058497187-7167f17c6daf?auto=format&fit=crop&w=200&q=80',
-  colors: ['Ruby Red', 'Blush Pink', 'Midnight Plum']
-};
+const PRODUCTS = new Map([
+  [1, {
+    id: 1,
+    name: 'Bloom Rose Suction Massager',
+    priceMinor: 3900,
+    image: 'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (1).jpeg',
+    images: [
+      'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM (2).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.17 AM.jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.18 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.18 AM (2).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.18 AM.jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.19 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.19 AM.jpeg'
+    ],
+    colors: ['Ruby Red', 'Blush Pink', 'Midnight Plum', 'Midnight Black']
+  }],
+  [2, {
+    id: 2,
+    name: 'Pulse Wand Massager',
+    priceMinor: 3900,
+    image: 'pics/WhatsApp Image 2026-10-26 at 4.09.20 AM (1).jpeg',
+    images: [
+      'pics/WhatsApp Image 2026-10-26 at 4.09.20 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.20 AM (2).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.20 AM.jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.21 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.21 AM (2).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.21 AM.jpeg'
+    ],
+    colors: ['Pink', 'Purple', 'Black']
+  }],
+  [3, {
+    id: 3,
+    name: 'Duo Dual-Stimulation Massager',
+    priceMinor: 3900,
+    image: 'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM (1).jpeg',
+    images: [
+      'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM (2).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM (3).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.22 AM.jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.23 AM (1).jpeg',
+      'pics/WhatsApp Image 2026-10-26 at 4.09.23 AM.jpeg'
+    ],
+    colors: ['Pink and White']
+  }]
+]);
 const SHIPPING_COUNTRIES = new Set(['Ghana', 'Nigeria', 'United States', 'United Kingdom', 'Canada', 'South Africa', 'Other']);
 
 function checkoutItems(input) {
@@ -135,17 +177,18 @@ function checkoutItems(input) {
   let totalQuantity = 0;
   for (const item of input) {
     if (!item || typeof item !== 'object') return null;
+    const product = PRODUCTS.get(Number(item.id));
     const quantity = Number(item.quantity);
     const color = String(item.color || '');
-    if (String(item.id) !== String(PRODUCT.id) || !PRODUCT.colors.includes(color) ||
+    if (!product || !product.colors.includes(color) ||
         !Number.isInteger(quantity) || quantity < 1 || quantity > 10) return null;
     totalQuantity += quantity;
     if (totalQuantity > 50) return null;
     items.push({
-      id: PRODUCT.id,
-      name: PRODUCT.name,
-      image: PRODUCT.image,
-      priceMinor: PRODUCT.priceMinor,
+      id: product.id,
+      name: product.name,
+      image: product.image,
+      priceMinor: product.priceMinor,
       color,
       quantity
     });

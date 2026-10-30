@@ -8,14 +8,25 @@ const { checkoutItems, orderTotals, paidTransactionMatches, validPaystackSignatu
 test('checkout items use server catalog data instead of client prices', () => {
   const [item] = checkoutItems([{ id: 1, color: 'Ruby Red', quantity: 2, price: 0, name: 'Forged item' }]);
 
-  assert.equal(item.name, 'Bloom Rose Massager');
+  assert.equal(item.name, 'Bloom Rose Suction Massager');
   assert.equal(item.priceMinor, 3900);
   assert.equal(item.quantity, 2);
+
+  const products = checkoutItems([
+    { id: 2, color: 'Pink', quantity: 1 },
+    { id: 3, color: 'Pink and White', quantity: 1 }
+  ]);
+  assert.deepEqual(products.map(({ id, name, priceMinor }) => ({ id, name, priceMinor })), [
+    { id: 2, name: 'Pulse Wand Massager', priceMinor: 3900 },
+    { id: 3, name: 'Duo Dual-Stimulation Massager', priceMinor: 3900 }
+  ]);
 });
 
 test('checkout rejects invalid colors and quantities', () => {
   assert.equal(checkoutItems([null]), null);
   assert.equal(checkoutItems([{ id: 1, color: 'Unknown', quantity: 1 }]), null);
+  assert.equal(checkoutItems([{ id: 2, color: 'Ruby Red', quantity: 1 }]), null);
+  assert.equal(checkoutItems([{ id: 4, color: 'Pink', quantity: 1 }]), null);
   assert.equal(checkoutItems([{ id: 1, color: 'Ruby Red', quantity: 1.5 }]), null);
   assert.equal(checkoutItems([{ id: 1, color: 'Ruby Red', quantity: 51 }]), null);
 });
